@@ -9,7 +9,7 @@ chrono-tz = { version = "0.4", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dimensioned = "0.7.0"
 emseries = "0.4.0"
-fitnesstrax = { path = "../fitnesstrax-lib" }
+fitnesstrax = { path = "fitnesstrax-lib" }
 gio = { version = "", features = ["v2_44"] }
 glib = "0.9.0"
 gtk = { version = "0.8.0", features = ["v3_16"] }
