@@ -19,10 +19,10 @@ jobs:
           command: cargo build --release
 
       - run:
-        name: test fitnesstrax-lib
-        command: |
-          cd fitnesstrax-lib
-          RUST_BACKTRACE=1 cargo test
+          name: test fitnesstrax-lib
+          command: |
+            cd fitnesstrax-lib
+            RUST_BACKTRACE=1 cargo test
 
       - run:
           name: test the GTK app
