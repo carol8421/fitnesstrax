@@ -8,6 +8,12 @@ jobs:
       - image: circleci/rust:1.39
 
     steps:
+      - run:
+          name: set up system dependencies
+          command: |
+            sudo apt update
+            sudo apt install libatk1.0-dev libpango1.0-dev librust-gdk-dev
+
       - checkout
 
       - restore_cache:
@@ -22,6 +28,7 @@ jobs:
           name: test fitnesstrax-lib
           command: |
             cd fitnesstrax-lib
+            mkdir var
             RUST_BACKTRACE=1 cargo test
 
       - run:
