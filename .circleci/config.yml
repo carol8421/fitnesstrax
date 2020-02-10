@@ -1,83 +1,41 @@
 version: 2
 jobs:
-  build-nixos:
-    working_directory: ~/repo
-
-    docker:
-    - image: savannidgerinel/nixos-rust
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          key: rust-nixos-{{ checksum "server/Cargo.lock" }}
-
-      - run:
-          name: update the build channel
-          command: |
-            nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs-19.03
-            nix-channel --update
-
-      - run:
-          name: build
-          command: |
-            nix-build
-
-      - save_cache:
-          key: rust-nixos-{{ checksum "server/Cargo.lock" }}
-          paths:
-            - "/nix/store"
-
-  build-ubuntu:
+  build:
     working_directory: ~/repo
     parallelism: 1
 
     docker:
-      - image: circleci/rust:1.33-node
+      - image: circleci/rust:1.39
 
     steps:
+      - run:
+          name: set up system dependencies
+          command: |
+            sudo apt update
+            sudo apt install libatk1.0-dev libpango1.0-dev librust-gdk-dev
+
       - checkout
 
       - restore_cache:
           keys:
-            - dep-ubuntu-{{ checksum "server/Cargo.toml" }}
+            - dep-{{ checksum "Cargo.toml" }}
 
       - run:
-          name: build server
-          command: cd server && cargo build --release
+          name: build
+          command: cargo build --release
 
       - run:
-          name: test server
+          name: test fitnesstrax-lib
           command: |
-            cd server
+            cd fitnesstrax-lib
             mkdir var
             RUST_BACKTRACE=1 cargo test
 
-      - save_cache:
-          key: dep-ubuntu-{{ checksum "server/Cargo.toml" }}
-          paths:
-            - ~/.cargo
-
-      - restore_cache:
-          keys:
-            - dep-{{ checksum "client/package-lock.json" }}
-
       - run:
-          name: install javascript dependencies
-          command: cd client && npm install
-
-      - run:
-          name: build the client
-          command: cd client && npm run build
-
-      - run:
-          name: test the client
-          command: cd client && npm run test
-
-      - save_cache:
-          key: dep-{{ checksum "client/package-lock.json" }}
-          paths:
-            - client/node_modules
+          name: test the GTK app
+          command: |
+            mkdir var
+            RUST_BACKTRACE=1 cargo test
 
       #- run:
           #name: copy components
@@ -93,6 +51,6 @@ jobs:
 
 workflows:
   version: 2
-  build_ubuntu:
+  build:
     jobs:
-      - build-ubuntu
+      - build
