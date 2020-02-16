@@ -2,6 +2,10 @@ use dimensioned::si;
 use gtk::prelude::*;
 use std::convert::TryFrom;
 
+mod dropmenu;
+
+pub use dropmenu::{dropmenu_c, MenuOptions};
+
 use crate::components::validated_text_entry::validated_text_entry_c;
 use crate::formats::{Duration, HoursMinutes};
 use crate::i18n::UnitSystem;
@@ -93,7 +97,7 @@ pub fn setting_with_label_c<A: IsA<gtk::Widget>>(label: &str, selector: A) -> gt
     widget
 }
 
-pub fn entry_setting_c(label: &str, current: &str, on_changed: Box<dyn Fn(&str)>) -> gtk::Box {
+pub fn text_entry_c(label: &str, current: &str, on_changed: Box<dyn Fn(&str)>) -> gtk::Box {
     let entry = gtk::Entry::new();
     entry.set_text(current);
     entry.connect_changed(move |v| match v.get_text() {
@@ -102,23 +106,4 @@ pub fn entry_setting_c(label: &str, current: &str, on_changed: Box<dyn Fn(&str)>
     });
 
     setting_with_label_c(label, entry)
-}
-
-pub fn pulldown_setting_c(
-    label: &str,
-    options: Vec<(&str, &str)>,
-    current: &str,
-    on_changed: Box<dyn Fn(&str)>,
-) -> gtk::Box {
-    let combo = gtk::ComboBoxText::new();
-    for (id, option) in options.iter() {
-        combo.append(Some(id), option);
-    }
-    combo.set_active_id(Some(current));
-    combo.connect_changed(move |s| match s.get_active_id() {
-        Some(val) => on_changed(val.as_str()),
-        None => (),
-    });
-
-    setting_with_label_c(label, combo)
 }

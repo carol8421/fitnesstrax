@@ -2,7 +2,7 @@ use gtk::prelude::*;
 use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
 
-use crate::components::{entry_setting_c, pulldown_setting_c};
+use crate::components::{dropmenu_c, text_entry_c, MenuOptions};
 use crate::context::AppContext;
 use crate::settings;
 
@@ -55,7 +55,7 @@ impl Preferences {
                 {
                     let ctx = self.ctx.clone();
                     widget.pack_start(
-                        &entry_setting_c(
+                        &text_entry_c(
                             "Database path",
                             &series_path,
                             Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
@@ -69,9 +69,9 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &dropmenu_c(
                             text.language().as_str(),
-                            vec![("en", "English"), ("eo", "Esperanto")],
+                            MenuOptions(vec![("en", "English"), ("eo", "Esperanto")]),
                             text.language_id(),
                             Box::new(move |s| w.set_language(s)),
                         ),
@@ -84,9 +84,9 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &dropmenu_c(
                             &text.timezone(),
-                            tz_list(),
+                            MenuOptions(tz_list()),
                             timezone.name(),
                             Box::new(move |s| w.set_timezone(s)),
                         ),
@@ -99,9 +99,12 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &dropmenu_c(
                             &text.units(),
-                            vec![("SI", "SI (kg, km, m/s)"), ("USA", "USA (lbs, mi, mph)")],
+                            MenuOptions(vec![
+                                ("SI", "SI (kg, km, m/s)"),
+                                ("USA", "USA (lbs, mi, mph)"),
+                            ]),
                             &String::from(&units),
                             Box::new(move |s| w.set_units(s)),
                         ),
