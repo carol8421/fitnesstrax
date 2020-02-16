@@ -249,13 +249,15 @@ impl Text {
 mod test {
     use super::Text;
 
+    use crate::i18n::UnitSystem;
+
     #[test]
     fn translations_work() {
-        let en = Text::new("en-US");
-        assert_eq!(en.tr("preferences"), Some("Preferences"));
+        let en = Text::new("en-US".parse().unwrap(), UnitSystem::SI);
+        assert_eq!(en.preferences(), "Preferences");
 
-        let eo = Text::new("eo");
-        assert_eq!(eo.tr("preferences"), Some("Agdoroj"));
-        assert_eq!(eo.tr("historio"), None);
+        let eo = Text::new("eo".parse().unwrap(), UnitSystem::SI);
+        assert_eq!(eo.preferences(), "Agdoroj");
+        assert_eq!(eo.history(), "Historio");
     }
 }
