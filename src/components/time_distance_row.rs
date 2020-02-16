@@ -110,8 +110,10 @@ pub fn time_distance_record_edit_c(
         let on_update = on_update.clone();
         let menu = gtk::ComboBoxText::new();
         for activity in activity_types().iter() {
-            let activity_str = format!("{:?}", activity);
-            menu.append(Some(&activity_str), &activity_str);
+            menu.append(
+                Some(&format!("{:?}", activity)),
+                &settings.text.time_distance_activity(activity),
+            );
         }
         menu.set_active_id(Some(&format!("{:?}", record.read().unwrap().activity)));
         menu.connect_changed(move |s| match s.get_active_id() {

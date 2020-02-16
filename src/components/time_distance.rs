@@ -40,7 +40,7 @@ impl TimeDistanceEdit {
             record_box,
 
             records: record_hash,
-            settings,
+            settings: settings.clone(),
             updated_records,
             new_records: new_records.clone(),
         };
@@ -49,7 +49,8 @@ impl TimeDistanceEdit {
             let w = w.clone();
             let new_records = new_records.clone();
             let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 5);
-            let new_button = gtk::Button::new_with_label("Add a Time/Distance workout");
+            let new_button =
+                gtk::Button::new_with_label(&settings.text.add_time_distance_workout());
             new_button.show();
             button_box.pack_start(&new_button, false, false, 5);
             new_button.connect_clicked(move |_| {

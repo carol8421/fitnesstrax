@@ -5,9 +5,10 @@ use std::sync::Arc;
 use unic_langid::LanguageIdentifier;
 
 use crate::i18n::UnitSystem;
+use fitnesstrax::timedistance;
 
 const ENGLISH_STRINGS: &str = "
-add-workout = Add Workout
+add-time-distance-workout = Add Time/Distance Workout
 cancel = Cancel
 cycling = Cycling
 edit = Edit
@@ -27,6 +28,7 @@ mass-label = {$units ->
 }
 preferences = Preferences
 pushups = Pushups
+rowing = Rowing
 running = Running
 save = Save
 situps = Situps
@@ -43,7 +45,7 @@ weight = Weight
 ";
 
 const ESPERANTO_STRINGS: &str = "
-add-workout = Aldonu Entrenamiento
+add-time-distance-workout = Aldonu Trejnadon de Daŭro/Distanco
 cancel = Nuligi
 cycling = Biciklado
 edit = Redaktu
@@ -63,6 +65,7 @@ mass-label = {$units ->
 }
 preferences = Agdoroj
 pushups = Supraj Puŝoj
+rowing = Remado
 running = Kurado
 save = Ŝpari
 situps = Sidiĝoj
@@ -126,6 +129,10 @@ impl Text {
 
     pub fn language_id(&self) -> &str {
         self.language.get_language()
+    }
+
+    pub fn add_time_distance_workout(&self) -> String {
+        self.tr("add-time-distance-workout", None).unwrap()
     }
 
     pub fn cancel(&self) -> String {
@@ -207,6 +214,17 @@ impl Text {
 
     pub fn timezone(&self) -> String {
         self.tr("timezone", None).unwrap()
+    }
+
+    pub fn time_distance_activity(&self, activity: &timedistance::ActivityType) -> String {
+        match activity {
+            timedistance::ActivityType::Cycling => self.tr("cycling", None),
+            timedistance::ActivityType::Rowing => self.tr("rowing", None),
+            timedistance::ActivityType::Running => self.tr("running", None),
+            timedistance::ActivityType::Swimming => self.tr("swimming", None),
+            timedistance::ActivityType::Walking => self.tr("walking", None),
+        }
+        .unwrap()
     }
 
     pub fn units(&self) -> String {
