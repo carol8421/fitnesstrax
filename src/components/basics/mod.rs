@@ -3,8 +3,10 @@ use gtk::prelude::*;
 use std::convert::TryFrom;
 
 mod dropmenu;
+mod time;
 
 pub use dropmenu::{dropmenu_c, MenuOptions};
+pub use time::{time_c, time_edit_c};
 
 use crate::components::validated_text_entry::validated_text_entry_c;
 use crate::formats::{Duration, HoursMinutes};
@@ -14,22 +16,6 @@ pub fn date_c(date: &chrono::Date<chrono_tz::Tz>) -> gtk::Label {
     let lbl = gtk::Label::new(Some(&format!("{}", date.format("%B %e, %Y"))));
     lbl.show_all();
     lbl
-}
-
-pub fn time_c(time: &chrono::NaiveTime) -> gtk::Label {
-    gtk::Label::new(Some(&format!("{}", time.format("%H:%M"))))
-}
-
-pub fn time_edit_c(
-    time: &chrono::NaiveTime,
-    on_update: Box<dyn Fn(chrono::NaiveTime)>,
-) -> gtk::Entry {
-    validated_text_entry_c(
-        time.clone(),
-        Box::new(|s| format!("{}", HoursMinutes::new(s))),
-        Box::new(|s| HoursMinutes::try_from(s).map(|h| h.extract())),
-        on_update,
-    )
 }
 
 pub fn distance_c(distance: &si::Meter<f64>, units: &UnitSystem) -> gtk::Label {
