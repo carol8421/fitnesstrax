@@ -14,8 +14,9 @@ mod config;
 mod context;
 mod conversions;
 mod errors;
-mod preferences;
+mod i18n;
 mod range;
+mod settings;
 mod types;
 
 fn main() {
@@ -38,8 +39,15 @@ fn main() {
             glib::Continue(true)
         });
 
-        let g = gui.read().unwrap();
-        g.show()
+        {
+            let ctx = ctx.read().unwrap();
+            let mut g = gui.write().unwrap();
+            g.render(
+                ctx.get_settings(),
+                ctx.get_range(),
+                ctx.get_history().unwrap(),
+            );
+        }
     });
 
     application.run(&[]);
