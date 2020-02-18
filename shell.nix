@@ -19,7 +19,5 @@ in pkgs.mkShell {
                     ld.rust_1_39
                   ] ++ darwin_frameworks;
 
-    RUST_BACKTRACE = "full";
-
     shellHook = ''if [ -e ~/.nixpkgs/shellhook.sh ]; then . ~/.nixpkgs/shellhook.sh; fi'';
 }

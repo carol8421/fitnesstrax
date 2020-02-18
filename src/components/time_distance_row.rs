@@ -53,7 +53,7 @@ pub fn time_distance_c(
     container.pack_start(
         &record
             .duration
-            .map(|r| duration_c(&r))
+            .map(|r| duration_c(r))
             .unwrap_or(gtk::Label::new(Some("---"))),
         false,
         false,

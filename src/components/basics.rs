@@ -1,10 +1,9 @@
+use dimensioned::si;
 use gtk::prelude::*;
+use std::convert::TryFrom;
 
 use crate::components::validated_text_entry::validated_text_entry_c;
-use crate::conversions::{
-    parse_distance, parse_duration, parse_hours_minutes, render_distance, render_duration,
-    render_hours_minutes,
-};
+use crate::formats::{Duration, HoursMinutes};
 use crate::i18n::UnitSystem;
 
 pub fn date_c(date: &chrono::Date<chrono_tz::Tz>) -> gtk::Label {
@@ -23,20 +22,23 @@ pub fn time_edit_c(
 ) -> gtk::Entry {
     validated_text_entry_c(
         time.clone(),
-        Box::new(|s| render_hours_minutes(s)),
-        Box::new(|s| parse_hours_minutes(s)),
+        Box::new(|s| format!("{}", HoursMinutes::new(s))),
+        Box::new(|s| HoursMinutes::try_from(s).map(|h| h.extract())),
         on_update,
     )
 }
 
-pub fn distance_c(distance: &dimensioned::si::Meter<f64>, units: &UnitSystem) -> gtk::Label {
-    gtk::Label::new(Some(&format!("{}", render_distance(distance, units, true))))
+pub fn distance_c(distance: &si::Meter<f64>, units: &UnitSystem) -> gtk::Label {
+    gtk::Label::new(Some(&format!(
+        "{}",
+        units.render_distance(distance.clone())
+    )))
 }
 
 pub fn distance_edit_c(
-    distance: &Option<dimensioned::si::Meter<f64>>,
+    distance: &Option<si::Meter<f64>>,
     units: &UnitSystem,
-    on_update: Box<dyn Fn(Option<dimensioned::si::Meter<f64>>)>,
+    on_update: Box<dyn Fn(Option<si::Meter<f64>>)>,
 ) -> gtk::Entry {
     let u1 = units.clone();
     let u2 = units.clone();
@@ -44,26 +46,41 @@ pub fn distance_edit_c(
         distance.clone(),
         Box::new(move |s| {
             let u1 = u1.clone();
-            s.map(move |s_| render_distance(&s_, &u1, false))
+            s.map(move |s_| u1.render_distance(s_.clone()))
                 .unwrap_or(String::from(""))
         }),
-        Box::new(move |s| parse_distance(s, &u2)),
+        Box::new(move |s| {
+            if s.len() == 0 {
+                Ok(None)
+            } else {
+                u2.parse_distance(s).map(|v| Some(v))
+            }
+        }),
         on_update,
     )
 }
 
-pub fn duration_c(duration: &dimensioned::si::Second<f64>) -> gtk::Label {
-    gtk::Label::new(Some(&render_duration(duration)))
+pub fn duration_c(duration: si::Second<f64>) -> gtk::Label {
+    gtk::Label::new(Some(&format!("{}", Duration::new(duration))))
 }
 
 pub fn duration_edit_c(
-    duration: &Option<dimensioned::si::Second<f64>>,
-    on_update: Box<dyn Fn(Option<dimensioned::si::Second<f64>>)>,
+    duration: &Option<si::Second<f64>>,
+    on_update: Box<dyn Fn(Option<si::Second<f64>>)>,
 ) -> gtk::Entry {
     validated_text_entry_c(
         duration.clone(),
-        Box::new(|s| s.map(|s_| render_duration(&s_)).unwrap_or(String::from(""))),
-        Box::new(|s| parse_duration(s)),
+        Box::new(|s| {
+            s.map(|s_| format!("{}", Duration::new(s_)))
+                .unwrap_or(String::from(""))
+        }),
+        Box::new(|s| {
+            if s.len() > 0 {
+                s.parse::<Duration>().map(|v| Some(v.extract()))
+            } else {
+                Ok(None)
+            }
+        }),
         on_update,
     )
 }

@@ -155,12 +155,9 @@ impl Text {
         self.tr("language", None).unwrap()
     }
 
-    pub fn mass(&self, value: &Kilogram<f64>) -> String {
+    pub fn mass(&self, value: Kilogram<f64>) -> String {
         let mut args = FluentArgs::new();
-        args.insert(
-            "value",
-            FluentValue::from(format!("{:.1}", self.units.mass(&value))),
-        );
+        args.insert("value", FluentValue::from(self.units.render_mass(value)));
         args.insert("units", FluentValue::from(String::from(&self.units)));
 
         self.tr("mass", Some(&args)).unwrap()
