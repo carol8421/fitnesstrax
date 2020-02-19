@@ -2,7 +2,7 @@ use gtk::prelude::*;
 use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
 
-use crate::components::{dropmenu_c, text_entry_c, MenuOptions};
+use crate::components::{dropmenu_c, labeled_widget_c, text_entry_c, MenuOptions};
 use crate::context::AppContext;
 use crate::settings;
 
@@ -55,10 +55,12 @@ impl Preferences {
                 {
                     let ctx = self.ctx.clone();
                     widget.pack_start(
-                        &text_entry_c(
+                        &labeled_widget_c(
                             "Database path",
-                            &series_path,
-                            Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
+                            text_entry_c(
+                                &series_path,
+                                Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
+                            ),
                         ),
                         false,
                         false,
