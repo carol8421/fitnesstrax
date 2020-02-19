@@ -4,9 +4,11 @@ extern crate fitnesstrax;
 extern crate gio;
 extern crate glib;
 extern crate gtk;
+extern crate gtk_sys;
 extern crate serde;
 
 use gio::prelude::*;
+use gtk::prelude::*;
 use std::sync::{Arc, RwLock};
 
 mod components;

@@ -2,11 +2,18 @@ use crate::context::{AppContext, Message};
 use emseries::Record;
 use fitnesstrax::TraxRecord;
 use gtk::prelude::*;
+use std::convert::TryInto;
 use std::sync::{Arc, RwLock};
 
 use crate::components::*;
 use crate::settings::Settings;
 use crate::types::DateRange;
+
+const STYLES: &str = "
+.labeled-widget {
+    color: blue;
+}
+";
 
 struct MainWindowComponent {
     notebook: gtk::Notebook,
@@ -27,6 +34,18 @@ impl MainWindow {
         let widget = gtk::ApplicationWindow::new(app);
         widget.set_title("Fitnesstrax");
         widget.set_default_size(350, 70);
+
+        let css = gtk::CssProvider::new();
+        css.load_from_data(STYLES.as_bytes())
+            .expect("css should load");
+
+        gtk::StyleContext::add_provider_for_screen(
+            &widget.get_screen().unwrap(),
+            &css,
+            gtk_sys::GTK_STYLE_PROVIDER_PRIORITY_USER
+                .try_into()
+                .unwrap(),
+        );
 
         MainWindow {
             widget,
