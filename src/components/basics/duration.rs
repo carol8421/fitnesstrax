@@ -1,6 +1,6 @@
 use dimensioned::si;
 
-use crate::components::validated_text_entry::validated_text_entry_c;
+use super::validated_text_entry_c;
 use crate::formats::Duration;
 
 pub fn duration_c(duration: si::Second<f64>) -> gtk::Label {

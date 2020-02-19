@@ -1,6 +1,6 @@
 use dimensioned::si;
 
-use crate::components::validated_text_entry::validated_text_entry_c;
+use super::validated_text_entry_c;
 use crate::i18n::UnitSystem;
 
 pub fn distance_c(distance: &si::Meter<f64>, units: &UnitSystem) -> gtk::Label {

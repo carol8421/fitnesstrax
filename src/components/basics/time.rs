@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use crate::components::validated_text_entry_c;
+use super::validated_text_entry_c;
 use crate::formats::HoursMinutes;
 
 pub fn time_c(time: &chrono::NaiveTime) -> gtk::Label {
