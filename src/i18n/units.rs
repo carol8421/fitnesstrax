@@ -106,7 +106,7 @@ impl TryFrom<&str> for Kilograms {
     fn try_from(inp: &str) -> Result<Self, Self::Error> {
         inp.parse::<f64>()
             .map(|v| Kilograms::new(v * si::KG))
-            .map_err(|_| Error::ParseDistanceError)
+            .map_err(|_| Error::ParseMassError)
     }
 }
 
@@ -162,7 +162,7 @@ impl TryFrom<&str> for Pounds {
     fn try_from(inp: &str) -> Result<Self, Self::Error> {
         inp.parse::<f64>()
             .map(|v| Pounds::new(v * si::LB))
-            .map_err(|_| Error::ParseDistanceError)
+            .map_err(|_| Error::ParseMassError)
     }
 }
 
