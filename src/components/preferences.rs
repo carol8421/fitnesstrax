@@ -1,8 +1,7 @@
 use gtk::prelude::*;
-use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
 
-use crate::components::{entry_setting_c, pulldown_setting_c};
+use crate::components::{dropmenu_c, labeled_widget_c, text_entry_c, MenuOptions};
 use crate::context::AppContext;
 use crate::settings;
 
@@ -55,10 +54,12 @@ impl Preferences {
                 {
                     let ctx = self.ctx.clone();
                     widget.pack_start(
-                        &entry_setting_c(
+                        &labeled_widget_c(
                             "Database path",
-                            &series_path,
-                            Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
+                            text_entry_c(
+                                &series_path,
+                                Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
+                            ),
                         ),
                         false,
                         false,
@@ -69,11 +70,13 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &labeled_widget_c(
                             text.language().as_str(),
-                            vec![("en", "English"), ("eo", "Esperanto")],
-                            text.language_id(),
-                            Box::new(move |s| w.set_language(s)),
+                            dropmenu_c(
+                                MenuOptions(vec![("en", "English"), ("eo", "Esperanto")]),
+                                text.language_id(),
+                                Box::new(move |s| w.set_language(s)),
+                            ),
                         ),
                         false,
                         false,
@@ -84,11 +87,13 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &labeled_widget_c(
                             &text.timezone(),
-                            tz_list(),
-                            timezone.name(),
-                            Box::new(move |s| w.set_timezone(s)),
+                            dropmenu_c(
+                                MenuOptions(tz_list()),
+                                timezone.name(),
+                                Box::new(move |s| w.set_timezone(s)),
+                            ),
                         ),
                         false,
                         false,
@@ -99,11 +104,16 @@ impl Preferences {
                 {
                     let w = self.clone();
                     widget.pack_start(
-                        &pulldown_setting_c(
+                        &labeled_widget_c(
                             &text.units(),
-                            vec![("SI", "SI (kg, km, m/s)"), ("USA", "USA (lbs, mi, mph)")],
-                            &String::from(&units),
-                            Box::new(move |s| w.set_units(s)),
+                            dropmenu_c(
+                                MenuOptions(vec![
+                                    ("SI", "SI (kg, km, m/s)"),
+                                    ("USA", "USA (lbs, mi, mph)"),
+                                ]),
+                                &String::from(&units),
+                                Box::new(move |s| w.set_units(s)),
+                            ),
                         ),
                         false,
                         false,

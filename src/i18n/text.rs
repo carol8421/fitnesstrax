@@ -8,6 +8,7 @@ use crate::i18n::UnitSystem;
 use fitnesstrax::timedistance;
 
 const ENGLISH_STRINGS: &str = "
+activity = Activity
 add-time-distance-workout = Add Time/Distance Workout
 cancel = Cancel
 cycling = Cycling
@@ -131,6 +132,10 @@ impl Text {
         self.language.get_language()
     }
 
+    pub fn activity<'s>(&'s self) -> std::borrow::Cow<'s, str> {
+        self.tr_("activity", None).unwrap()
+    }
+
     pub fn add_time_distance_workout(&self) -> String {
         self.tr("add-time-distance-workout", None).unwrap()
     }
@@ -213,13 +218,16 @@ impl Text {
         self.tr("timezone", None).unwrap()
     }
 
-    pub fn time_distance_activity(&self, activity: &timedistance::ActivityType) -> String {
+    pub fn time_distance_activity<'s>(
+        &'s self,
+        activity: &timedistance::ActivityType,
+    ) -> std::borrow::Cow<'s, str> {
         match activity {
-            timedistance::ActivityType::Cycling => self.tr("cycling", None),
-            timedistance::ActivityType::Rowing => self.tr("rowing", None),
-            timedistance::ActivityType::Running => self.tr("running", None),
-            timedistance::ActivityType::Swimming => self.tr("swimming", None),
-            timedistance::ActivityType::Walking => self.tr("walking", None),
+            timedistance::ActivityType::Cycling => self.tr_("cycling", None),
+            timedistance::ActivityType::Rowing => self.tr_("rowing", None),
+            timedistance::ActivityType::Running => self.tr_("running", None),
+            timedistance::ActivityType::Swimming => self.tr_("swimming", None),
+            timedistance::ActivityType::Walking => self.tr_("walking", None),
         }
         .unwrap()
     }
@@ -239,6 +247,19 @@ impl Text {
             .get_message(id)
             .and_then(|msg| msg.value)
             .map(|pattern| String::from(self.bundle.format_pattern(&pattern, args, &mut _errors)))
+    }
+
+    pub fn tr_<'s>(
+        &'s self,
+        id: &str,
+        args: Option<&'s FluentArgs>,
+    ) -> Option<std::borrow::Cow<'s, str>> {
+        let mut _errors = vec![];
+
+        self.bundle
+            .get_message(id)
+            .and_then(|msg| msg.value)
+            .map(|pattern| self.bundle.format_pattern(&pattern, args, &mut _errors))
     }
 }
 

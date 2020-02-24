@@ -5,7 +5,8 @@ use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
 
 use crate::components::basics::{
-    distance_c, distance_edit_c, duration_c, duration_edit_c, time_c, time_edit_c,
+    distance_c, distance_edit_c, dropmenu_c, duration_c, duration_edit_c, labeled_widget_c, time_c,
+    time_edit_c, MenuOptions,
 };
 use crate::settings::Settings;
 use fitnesstrax::timedistance::{activity_types, ActivityType, TimeDistanceRecord};
@@ -108,23 +109,35 @@ pub fn time_distance_record_edit_c(
         let id = id.clone();
         let record = record.clone();
         let on_update = on_update.clone();
-        let menu = gtk::ComboBoxText::new();
-        for activity in activity_types().iter() {
-            menu.append(
-                Some(&format!("{:?}", activity)),
-                &settings.text.time_distance_activity(activity),
-            );
-        }
-        menu.set_active_id(Some(&format!("{:?}", record.read().unwrap().activity)));
-        menu.connect_changed(move |s| match s.get_active_id() {
-            Some(val) => {
-                let mut r = record.write().unwrap();
-                r.activity = ActivityType::try_from(val.as_str()).unwrap();
-                on_update(id.clone(), r.clone());
-            }
-            None => (),
-        });
-        menu
+        let menu: Vec<(String, std::borrow::Cow<'_, str>)> = activity_types()
+            .iter()
+            .map(|activity| {
+                (
+                    format!("{:?}", activity),
+                    settings.text.time_distance_activity(activity),
+                )
+            })
+            .collect();
+        /* It's really annoying that I have to do this, but the iterators won't convert a vec of
+         * (String, Cow) to (&str, &str), and trying to do it all in a single statement leads to a
+         * lot of temporaries getting dropped. */
+        let menu_: Vec<(&str, &str)> = menu
+            .iter()
+            .map(|(id, text)| (id.as_ref(), text.as_ref()))
+            .collect();
+        let activity_id = format!("{:?}", record.read().unwrap().activity);
+        labeled_widget_c(
+            &settings.text.activity(),
+            dropmenu_c(
+                MenuOptions(menu_),
+                &activity_id,
+                Box::new(move |val| {
+                    let mut r = record.write().unwrap();
+                    r.activity = ActivityType::try_from(val).unwrap();
+                    on_update(id.clone(), r.clone());
+                }),
+            ),
+        )
     };
 
     let distance_entry = {
