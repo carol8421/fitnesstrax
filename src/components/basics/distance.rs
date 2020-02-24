@@ -14,7 +14,7 @@ pub fn distance_edit_c(
     distance: &Option<si::Meter<f64>>,
     units: &UnitSystem,
     on_update: Box<dyn Fn(Option<si::Meter<f64>>)>,
-) -> gtk::Entry {
+) -> gtk::Widget {
     let u1 = units.clone();
     let u2 = units.clone();
     validated_text_entry_c(

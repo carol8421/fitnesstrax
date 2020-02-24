@@ -3,14 +3,14 @@ use gtk::{EditableSignals, EntryExt, StyleContextExt, WidgetExt};
 
 use crate::errors::Error;
 
-pub fn text_entry_c(current: &str, on_changed: Box<dyn Fn(&str)>) -> gtk::Entry {
+pub fn text_entry_c(current: &str, on_changed: Box<dyn Fn(&str)>) -> gtk::Widget {
     let entry = gtk::Entry::new();
     entry.set_text(current);
     entry.connect_changed(move |v| match v.get_text() {
         Some(ref s) => on_changed(s),
         None => (),
     });
-    entry
+    entry.upcast::<gtk::Widget>()
 }
 
 pub fn validated_text_entry_c<A: 'static + Clone>(
@@ -18,7 +18,7 @@ pub fn validated_text_entry_c<A: 'static + Clone>(
     render: Box<dyn Fn(&A) -> String>,
     parse: Box<dyn Fn(&str) -> Result<A, Error>>,
     on_update: Box<dyn Fn(A)>,
-) -> gtk::Entry {
+) -> gtk::Widget {
     let widget = gtk::Entry::new();
     widget.set_text(&render(&value));
 
@@ -38,5 +38,5 @@ pub fn validated_text_entry_c<A: 'static + Clone>(
         None => (),
     });
 
-    widget
+    widget.upcast::<gtk::Widget>()
 }

@@ -2,7 +2,7 @@ use emseries::{Recordable, UniqueId};
 use fitnesstrax::weight::WeightRecord;
 use gtk::prelude::*;
 
-use crate::components::validated_text_entry_c;
+use crate::components::basics::validated_text_entry_c;
 use crate::errors::Error;
 use crate::settings::Settings;
 

@@ -36,7 +36,7 @@ impl<A> Range<A> {
 }
 
 pub fn dates_in_range(
-    range: Range<chrono::Date<chrono_tz::Tz>>,
+    range: &Range<chrono::Date<chrono_tz::Tz>>,
 ) -> Vec<chrono::Date<chrono_tz::Tz>> {
     let mut dates = vec![];
     let mut current = range.start.clone();
@@ -49,7 +49,7 @@ pub fn dates_in_range(
 }
 
 pub fn group_by_date(
-    range: Range<chrono::Date<chrono_tz::Tz>>,
+    range: &Range<chrono::Date<chrono_tz::Tz>>,
     records: Vec<emseries::Record<TraxRecord>>,
 ) -> HashMap<chrono::Date<chrono_tz::Tz>, Vec<emseries::Record<TraxRecord>>> {
     let mut groups: HashMap<chrono::Date<chrono_tz::Tz>, Vec<emseries::Record<TraxRecord>>> =
@@ -80,10 +80,8 @@ mod test {
 
     #[test]
     fn it_creates_a_list_of_dates() {
-        let h = dates_in_range(Range::new(
-            New_York.ymd(2019, 5, 1),
-            New_York.ymd(2019, 5, 15),
-        ));
+        let range = Range::new(New_York.ymd(2019, 5, 1), New_York.ymd(2019, 5, 15));
+        let h = dates_in_range(&range);
 
         assert_eq!(h.len(), 15);
         assert_eq!(h[0], New_York.ymd(2019, 5, 1));
@@ -110,7 +108,7 @@ mod test {
             )),
         ];
 
-        let groups = group_by_date(range, recs);
+        let groups = group_by_date(&range, recs);
 
         assert_eq!(
             groups.get(&New_York.ymd(2019, 5, 5)).map(|v| v.len()),

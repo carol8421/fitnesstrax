@@ -1,5 +1,6 @@
 use dimensioned::si::Kilogram;
 use fluent::{FluentArgs, FluentBundle, FluentResource, FluentValue};
+use std::borrow::Cow;
 use std::fmt;
 use std::sync::Arc;
 use unic_langid::LanguageIdentifier;
@@ -12,6 +13,7 @@ activity = Activity
 add-time-distance-workout = Add Time/Distance Workout
 cancel = Cancel
 cycling = Cycling
+database-path = Database Path
 edit = Edit
 enter-distance = Enter distance
 enter-duration = Enter duration
@@ -49,6 +51,7 @@ const ESPERANTO_STRINGS: &str = "
 add-time-distance-workout = Aldonu Trejnadon de Daŭro/Distanco
 cancel = Nuligi
 cycling = Biciklado
+database-path = Vojo al Datumbazo
 edit = Redaktu
 enter-distance = Eniru distanco
 enter-duration = Eniru daŭro
@@ -132,7 +135,7 @@ impl Text {
         self.language.get_language()
     }
 
-    pub fn activity<'s>(&'s self) -> std::borrow::Cow<'s, str> {
+    pub fn activity<'s>(&'s self) -> Cow<'s, str> {
         self.tr_("activity", None).unwrap()
     }
 
@@ -146,6 +149,10 @@ impl Text {
 
     pub fn cycling(&self) -> String {
         self.tr("cycling", None).unwrap()
+    }
+
+    pub fn database_path<'s>(&'s self) -> Cow<'s, str> {
+        self.tr_("database-path", None).unwrap()
     }
 
     pub fn edit(&self) -> String {
@@ -214,14 +221,14 @@ impl Text {
         self.tr("swimming", None).unwrap()
     }
 
-    pub fn timezone(&self) -> String {
-        self.tr("timezone", None).unwrap()
+    pub fn timezone<'s>(&'s self) -> Cow<'s, str> {
+        self.tr_("timezone", None).unwrap()
     }
 
     pub fn time_distance_activity<'s>(
         &'s self,
         activity: &timedistance::ActivityType,
-    ) -> std::borrow::Cow<'s, str> {
+    ) -> Cow<'s, str> {
         match activity {
             timedistance::ActivityType::Cycling => self.tr_("cycling", None),
             timedistance::ActivityType::Rowing => self.tr_("rowing", None),
@@ -249,11 +256,7 @@ impl Text {
             .map(|pattern| String::from(self.bundle.format_pattern(&pattern, args, &mut _errors)))
     }
 
-    pub fn tr_<'s>(
-        &'s self,
-        id: &str,
-        args: Option<&'s FluentArgs>,
-    ) -> Option<std::borrow::Cow<'s, str>> {
+    pub fn tr_<'s>(&'s self, id: &str, args: Option<&'s FluentArgs>) -> Option<Cow<'s, str>> {
         let mut _errors = vec![];
 
         self.bundle

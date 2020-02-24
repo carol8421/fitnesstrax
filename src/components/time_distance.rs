@@ -1,8 +1,9 @@
 use emseries::{DateTimeTz, Recordable, UniqueId};
 use fitnesstrax::timedistance::{ActivityType, TimeDistanceRecord};
 use gtk::prelude::*;
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::rc::Rc;
 
 use crate::components::time_distance_row::time_distance_record_edit_c;
 use crate::settings::Settings;
@@ -14,8 +15,8 @@ pub struct TimeDistanceEdit {
 
     records: HashMap<UniqueId, TimeDistanceRecord>,
     settings: Settings,
-    updated_records: Arc<RwLock<HashMap<UniqueId, TimeDistanceRecord>>>,
-    new_records: Arc<RwLock<HashMap<UniqueId, TimeDistanceRecord>>>,
+    updated_records: Rc<RefCell<HashMap<UniqueId, TimeDistanceRecord>>>,
+    new_records: Rc<RefCell<HashMap<UniqueId, TimeDistanceRecord>>>,
 }
 
 impl TimeDistanceEdit {
@@ -29,8 +30,8 @@ impl TimeDistanceEdit {
             record_hash.insert((*id).clone(), (*rec).clone());
         }
 
-        let updated_records = Arc::new(RwLock::new(HashMap::new()));
-        let new_records = Arc::new(RwLock::new(HashMap::new()));
+        let updated_records = Rc::new(RefCell::new(HashMap::new()));
+        let new_records = Rc::new(RefCell::new(HashMap::new()));
 
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 5);
         let record_box = gtk::Box::new(gtk::Orientation::Vertical, 5);
@@ -46,15 +47,13 @@ impl TimeDistanceEdit {
         };
 
         let button_box = {
-            let w = w.clone();
-            let new_records = new_records.clone();
             let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 5);
             let new_button =
                 gtk::Button::new_with_label(&settings.text.add_time_distance_workout());
             new_button.show();
             button_box.pack_start(&new_button, false, false, 5);
-            new_button.connect_clicked(move |_| {
-                new_records.write().unwrap().insert(
+            new_button.connect_clicked(enclose!(w, new_records => move |_| {
+                new_records.borrow_mut().insert(
                     UniqueId::new(),
                     TimeDistanceRecord::new(
                         DateTimeTz(date.and_hms(0, 0, 0)),
@@ -65,7 +64,7 @@ impl TimeDistanceEdit {
                     ),
                 );
                 w.render();
-            });
+            }));
             button_box
         };
 
@@ -89,7 +88,7 @@ impl TimeDistanceEdit {
 
         for (id, record) in sorted_records {
             let updated_records = self.updated_records.clone();
-            match self.updated_records.read().unwrap().get(id) {
+            match self.updated_records.borrow().get(id) {
                 Some(rec) => {
                     self.record_box.pack_start(
                         &time_distance_record_edit_c(
@@ -97,7 +96,7 @@ impl TimeDistanceEdit {
                             rec.clone(),
                             self.settings.clone(),
                             Box::new(move |id, rec| {
-                                updated_records.write().unwrap().insert(id, rec);
+                                updated_records.borrow_mut().insert(id, rec);
                             }),
                         ),
                         false,
@@ -112,7 +111,7 @@ impl TimeDistanceEdit {
                             record.clone(),
                             self.settings.clone(),
                             Box::new(move |id, rec| {
-                                updated_records.write().unwrap().insert(id, rec);
+                                updated_records.borrow_mut().insert(id, rec);
                             }),
                         ),
                         false,
@@ -123,7 +122,7 @@ impl TimeDistanceEdit {
             }
         }
 
-        for (id, record) in self.new_records.read().unwrap().iter() {
+        for (id, record) in self.new_records.borrow().iter() {
             let new_records = self.new_records.clone();
             self.record_box.pack_start(
                 &time_distance_record_edit_c(
@@ -131,7 +130,7 @@ impl TimeDistanceEdit {
                     record.clone(),
                     self.settings.clone(),
                     Box::new(move |id, rec| {
-                        new_records.write().unwrap().insert(id, rec);
+                        new_records.borrow_mut().insert(id, rec);
                     }),
                 ),
                 false,
@@ -145,8 +144,7 @@ impl TimeDistanceEdit {
 
     pub fn updated_records(&self) -> Vec<(UniqueId, TimeDistanceRecord)> {
         self.updated_records
-            .read()
-            .unwrap()
+            .borrow()
             .iter()
             .map(|(id, record)| (id.clone(), record.clone()))
             .collect()
@@ -154,8 +152,7 @@ impl TimeDistanceEdit {
 
     pub fn new_records(&self) -> Vec<(UniqueId, TimeDistanceRecord)> {
         self.new_records
-            .read()
-            .unwrap()
+            .borrow()
             .iter()
             .map(|(id, record)| (id.clone(), record.clone()))
             .collect()

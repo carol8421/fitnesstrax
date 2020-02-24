@@ -1,3 +1,20 @@
+macro_rules! enclose {
+    (@param _) => ( _ );
+    (@param $x:ident) => ( $x );
+    ($($n:ident),+ => move || $body:expr) => (
+        {
+            $( let $n = $n.clone(); )+
+            move || $body
+        }
+    );
+    ($($n:ident),+ => move |$($p:tt),+| $body:expr) => (
+        {
+            $( let $n = $n.clone(); )+
+            move |$(enclose!(@param $p),)+| $body
+        }
+    );
+}
+
 mod basics;
 mod date_selector;
 mod day;
@@ -23,5 +40,11 @@ pub use range_selector::RangeSelector;
 pub use swappable::SwappableComponent;
 
 pub trait Component {
-    fn render(&self) -> gtk::Box;
+    fn widget(&self) -> gtk::Widget;
+}
+
+impl Component for gtk::Widget {
+    fn widget(&self) -> gtk::Widget {
+        self.clone()
+    }
 }

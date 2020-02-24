@@ -13,18 +13,13 @@ use fitnesstrax::{Trax, TraxRecord};
 #[derive(Clone, Debug)]
 pub enum Message {
     ChangeRange {
-        settings: Settings,
         range: DateRange,
         records: Vec<Record<TraxRecord>>,
     },
     ChangeSettings {
         settings: Settings,
-        range: DateRange,
-        records: Vec<Record<TraxRecord>>,
     },
     RecordsUpdated {
-        settings: Settings,
-        range: DateRange,
         records: Vec<Record<TraxRecord>>,
     },
 }
@@ -77,8 +72,6 @@ impl AppContext {
         self.settings.set_language(language_str);
         self.send_notifications(Message::ChangeSettings {
             settings: self.settings.clone(),
-            range: self.range.clone(),
-            records: self.get_history().unwrap(),
         });
     }
 
@@ -86,8 +79,6 @@ impl AppContext {
         self.settings.set_timezone(timezone);
         self.send_notifications(Message::ChangeSettings {
             settings: self.settings.clone(),
-            range: self.range.clone(),
-            records: self.get_history().unwrap(),
         });
     }
 
@@ -95,8 +86,6 @@ impl AppContext {
         self.settings.set_units(units_str);
         self.send_notifications(Message::ChangeSettings {
             settings: self.settings.clone(),
-            range: self.range.clone(),
-            records: self.get_history().unwrap(),
         });
     }
 
@@ -157,18 +146,13 @@ impl AppContext {
             let _ = self.trax.add_record(record);
         }
         let history = self.get_history().unwrap();
-        self.send_notifications(Message::RecordsUpdated {
-            settings: self.settings.clone(),
-            range: self.range.clone(),
-            records: history,
-        });
+        self.send_notifications(Message::RecordsUpdated { records: history });
     }
 
     pub fn set_range(&mut self, range: DateRange) {
         self.range = range.clone();
         let history = self.get_history().unwrap();
         self.send_notifications(Message::ChangeRange {
-            settings: self.settings.clone(),
             range,
             records: history,
         });

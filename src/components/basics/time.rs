@@ -10,7 +10,7 @@ pub fn time_c(time: &chrono::NaiveTime) -> gtk::Label {
 pub fn time_edit_c(
     time: &chrono::NaiveTime,
     on_update: Box<dyn Fn(chrono::NaiveTime)>,
-) -> gtk::Entry {
+) -> gtk::Widget {
     validated_text_entry_c(
         time.clone(),
         Box::new(|s| format!("{}", HoursMinutes::new(s))),

@@ -8,68 +8,64 @@ use crate::components::*;
 use crate::settings::Settings;
 use crate::types::DateRange;
 
-struct MainWindowComponent {
-    notebook: gtk::Notebook,
+pub struct MainWindow {
+    widget: gtk::ApplicationWindow,
+    ctx: Arc<RwLock<AppContext>>,
+
     history_label: gtk::Label,
     settings_label: gtk::Label,
     history: History,
     settings_ui: Preferences,
 }
 
-pub struct MainWindow {
-    widget: gtk::ApplicationWindow,
-    component: Option<MainWindowComponent>,
-    ctx: Arc<RwLock<AppContext>>,
-}
-
 impl MainWindow {
     pub fn new(ctx: Arc<RwLock<AppContext>>, app: &gtk::Application) -> MainWindow {
+        let (settings, range, records) = {
+            let ctx = ctx.read().unwrap();
+            (
+                ctx.get_settings(),
+                ctx.get_range(),
+                ctx.get_history().unwrap(),
+            )
+        };
+
         let widget = gtk::ApplicationWindow::new(app);
         widget.set_title("Fitnesstrax");
         widget.set_default_size(350, 70);
 
+        let notebook = gtk::Notebook::new();
+        let history = History::new(range, records, settings.clone(), ctx.clone());
+        let settings_ui = Preferences::new(ctx.clone());
+
+        let history_label = gtk::Label::new(Some(&settings.text.history()));
+        let settings_label = gtk::Label::new(Some(&settings.text.preferences()));
+
+        notebook.append_page(&history.widget(), Some(&history_label));
+        notebook.append_page(&settings_ui.widget(), Some(&settings_label));
+
+        notebook.show();
+        widget.add(&notebook);
+        widget.show();
+
         MainWindow {
             widget,
-            component: None,
             ctx,
+
+            history_label,
+            settings_label,
+            history,
+            settings_ui,
         }
     }
 
-    pub fn render(
+    /*
+    fn render(
         &mut self,
         settings: Settings,
         range: DateRange,
         records: Vec<Record<TraxRecord>>,
     ) -> &gtk::ApplicationWindow {
         match self.component {
-            None => {
-                let notebook = gtk::Notebook::new();
-                let mut history = History::new(self.ctx.clone());
-                let mut settings_ui = Preferences::new(self.ctx.clone());
-
-                let ctx = self.ctx.read().unwrap();
-                let history_label = gtk::Label::new(Some(&settings.text.history()));
-                let settings_label = gtk::Label::new(Some(&settings.text.preferences()));
-
-                notebook.append_page(
-                    history.render(settings, range, records),
-                    Some(&history_label),
-                );
-                notebook.append_page(settings_ui.render(), Some(&settings_label));
-
-                notebook.show();
-                self.widget.add(&notebook);
-                self.widget.show();
-
-                let component = MainWindowComponent {
-                    notebook,
-                    history_label,
-                    settings_label,
-                    history,
-                    settings_ui,
-                };
-                self.component = Some(component);
-            }
             Some(MainWindowComponent {
                 ref history_label,
                 ref settings_label,
@@ -85,37 +81,22 @@ impl MainWindow {
         }
         &self.widget
     }
+    */
 
     pub fn update_from(&mut self, message: Message) {
         match message {
-            Message::ChangeRange {
-                settings,
-                range,
-                records,
-            } => {
-                self.render(settings, range, records);
+            Message::ChangeRange { range, records } => {
+                self.history.set_range(range);
+                self.history.set_records(records);
             }
-            Message::ChangeSettings {
-                settings,
-                range,
-                records,
-            } => {
-                self.render(settings, range, records);
+            Message::ChangeSettings { settings } => {
+                self.history_label.set_markup(&settings.text.history());
+                self.settings_label.set_markup(&settings.text.preferences());
+                self.history.set_settings(settings);
             }
-            Message::RecordsUpdated {
-                settings,
-                range,
-                records,
-            } => {
-                self.render(settings, range, records);
+            Message::RecordsUpdated { records } => {
+                self.history.set_records(records);
             }
         }
     }
-
-    /*
-    pub fn show(&self) {
-        self.notebook.show();
-        self.widget.show();
-    }
-    */
 }

@@ -76,12 +76,14 @@ impl Kilograms {
         }
     }
 
+    /*
     pub fn new_with_units(val: si::Kilogram<f64>) -> Kilograms {
         Kilograms {
             val,
             with_units: true,
         }
     }
+    */
 
     pub fn extract(self) -> si::Kilogram<f64> {
         self.val
@@ -130,12 +132,14 @@ impl Pounds {
         }
     }
 
+    /*
     pub fn new_with_units(val: si::Kilogram<f64>) -> Pounds {
         Pounds {
             val,
             with_units: true,
         }
     }
+    */
 
     pub fn extract(self) -> si::Kilogram<f64> {
         self.val
@@ -184,12 +188,14 @@ impl Kilometers {
         }
     }
 
+    /*
     pub fn new_with_units(val: si::Meter<f64>) -> Kilometers {
         Kilometers {
             val,
             with_units: true,
         }
     }
+    */
 
     pub fn extract(self) -> si::Meter<f64> {
         self.val
@@ -238,12 +244,14 @@ impl Miles {
         }
     }
 
+    /*
     pub fn new_with_units(val: si::Meter<f64>) -> Miles {
         Miles {
             val,
             with_units: true,
         }
     }
+    */
 
     pub fn extract(self) -> si::Meter<f64> {
         self.val
@@ -293,11 +301,13 @@ mod test {
         assert_eq!(format!("{}", t), "20.00");
     }
 
+    /*
     #[test]
     fn it_displays_mass_in_kg_with_units() {
         let t = Kilograms::new_with_units(20. * si::KG);
         assert_eq!(format!("{}", t), "20.00 kg");
     }
+    */
 
     #[test]
     fn it_parses_kilograms() {
@@ -311,11 +321,13 @@ mod test {
         assert_eq!(format!("{}", t), "44.09");
     }
 
+    /*
     #[test]
     fn it_displays_mass_in_lbs_with_units() {
         let t = Pounds::new_with_units(20. * si::KG);
         assert_eq!(format!("{}", t), "44.09 lbs");
     }
+    */
 
     #[test]
     fn it_parses_pounds() {
@@ -329,11 +341,13 @@ mod test {
         assert_eq!(format!("{}", t), "20.00");
     }
 
+    /*
     #[test]
     fn it_displays_distance_in_km_with_units() {
         let t = Kilometers::new_with_units(20000. * si::M);
         assert_eq!(format!("{}", t), "20.00 km");
     }
+    */
 
     #[test]
     fn it_parses_kilometers() {
@@ -347,11 +361,13 @@ mod test {
         assert_eq!(format!("{}", t), "12.43");
     }
 
+    /*
     #[test]
     fn it_displays_distance_in_miles_with_units() {
         let t = Miles::new_with_units(20000. * si::M);
         assert_eq!(format!("{}", t), "12.43 mi");
     }
+    */
 
     #[test]
     fn it_parses_miles() {

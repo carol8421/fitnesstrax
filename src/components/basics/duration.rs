@@ -10,7 +10,7 @@ pub fn duration_c(duration: si::Second<f64>) -> gtk::Label {
 pub fn duration_edit_c(
     duration: &Option<si::Second<f64>>,
     on_update: Box<dyn Fn(Option<si::Second<f64>>)>,
-) -> gtk::Entry {
+) -> gtk::Widget {
     validated_text_entry_c(
         duration.clone(),
         Box::new(|s| {

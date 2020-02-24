@@ -1,3 +1,4 @@
+mod container;
 mod date;
 mod distance;
 mod dropmenu;
@@ -6,6 +7,7 @@ mod labeled_widget;
 mod text_entry;
 mod time;
 
+pub use container::Container;
 pub use date::date_c;
 pub use distance::{distance_c, distance_edit_c};
 pub use dropmenu::{dropmenu_c, MenuOptions};

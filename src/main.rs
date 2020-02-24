@@ -34,20 +34,9 @@ fn main() {
 
         let gui_clone = gui.clone();
         rx.attach(None, move |msg| {
-            println!("Message received in GTK: {:?}", msg);
             gui_clone.write().unwrap().update_from(msg);
             glib::Continue(true)
         });
-
-        {
-            let ctx = ctx.read().unwrap();
-            let mut g = gui.write().unwrap();
-            g.render(
-                ctx.get_settings(),
-                ctx.get_range(),
-                ctx.get_history().unwrap(),
-            );
-        }
     });
 
     application.run(&[]);
