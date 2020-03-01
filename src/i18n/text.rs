@@ -1,6 +1,5 @@
 use dimensioned::si::Kilogram;
 use fluent::{FluentArgs, FluentBundle, FluentResource, FluentValue};
-use std::borrow::Cow;
 use std::fmt;
 use std::sync::Arc;
 use unic_langid::LanguageIdentifier;
@@ -135,8 +134,8 @@ impl Text {
         self.language.get_language()
     }
 
-    pub fn activity<'s>(&'s self) -> Cow<'s, str> {
-        self.tr_("activity", None).unwrap()
+    pub fn activity<'s>(&'s self) -> String {
+        self.tr("activity", None).unwrap()
     }
 
     pub fn add_time_distance_workout(&self) -> String {
@@ -151,8 +150,8 @@ impl Text {
         self.tr("cycling", None).unwrap()
     }
 
-    pub fn database_path<'s>(&'s self) -> Cow<'s, str> {
-        self.tr_("database-path", None).unwrap()
+    pub fn database_path<'s>(&'s self) -> String {
+        self.tr("database-path", None).unwrap()
     }
 
     pub fn edit(&self) -> String {
@@ -221,20 +220,17 @@ impl Text {
         self.tr("swimming", None).unwrap()
     }
 
-    pub fn timezone<'s>(&'s self) -> Cow<'s, str> {
-        self.tr_("timezone", None).unwrap()
+    pub fn timezone<'s>(&'s self) -> String {
+        self.tr("timezone", None).unwrap()
     }
 
-    pub fn time_distance_activity<'s>(
-        &'s self,
-        activity: &timedistance::ActivityType,
-    ) -> Cow<'s, str> {
+    pub fn time_distance_activity<'s>(&'s self, activity: &timedistance::ActivityType) -> String {
         match activity {
-            timedistance::ActivityType::Cycling => self.tr_("cycling", None),
-            timedistance::ActivityType::Rowing => self.tr_("rowing", None),
-            timedistance::ActivityType::Running => self.tr_("running", None),
-            timedistance::ActivityType::Swimming => self.tr_("swimming", None),
-            timedistance::ActivityType::Walking => self.tr_("walking", None),
+            timedistance::ActivityType::Cycling => self.tr("cycling", None),
+            timedistance::ActivityType::Rowing => self.tr("rowing", None),
+            timedistance::ActivityType::Running => self.tr("running", None),
+            timedistance::ActivityType::Swimming => self.tr("swimming", None),
+            timedistance::ActivityType::Walking => self.tr("walking", None),
         }
         .unwrap()
     }
@@ -254,15 +250,6 @@ impl Text {
             .get_message(id)
             .and_then(|msg| msg.value)
             .map(|pattern| String::from(self.bundle.format_pattern(&pattern, args, &mut _errors)))
-    }
-
-    pub fn tr_<'s>(&'s self, id: &str, args: Option<&'s FluentArgs>) -> Option<Cow<'s, str>> {
-        let mut _errors = vec![];
-
-        self.bundle
-            .get_message(id)
-            .and_then(|msg| msg.value)
-            .map(|pattern| self.bundle.format_pattern(&pattern, args, &mut _errors))
     }
 }
 

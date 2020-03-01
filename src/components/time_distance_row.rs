@@ -104,7 +104,7 @@ pub fn time_distance_record_edit_c(
     };
 
     let activity_selection = {
-        let menu: Vec<(String, std::borrow::Cow<'_, str>)> = activity_types()
+        let menu: Vec<(String, String)> = activity_types()
             .iter()
             .map(|activity| {
                 (
