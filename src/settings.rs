@@ -1,5 +1,6 @@
 use chrono_tz::Tz;
 use std::convert::TryFrom;
+use unic_langid::LanguageIdentifier;
 
 use crate::config::Configuration;
 use crate::i18n::{Text, UnitSystem};
@@ -12,10 +13,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn new(lang_str: &str, units_str: &str, timezone: chrono_tz::Tz) -> Settings {
-        let units = UnitSystem::try_from(units_str).expect("invalid unit system identifier");
-
-        let langid = lang_str.parse().expect("Language parsing failed");
+    pub fn new(langid: LanguageIdentifier, units: UnitSystem, timezone: chrono_tz::Tz) -> Settings {
         let text = Text::new(langid, units.clone());
 
         Settings {
@@ -26,7 +24,11 @@ impl Settings {
     }
 
     pub fn from_config(config: &Configuration) -> Settings {
-        Settings::new(&config.language, &config.units, config.timezone)
+        Settings::new(
+            (&config.language).into(),
+            config.units.clone(),
+            config.timezone,
+        )
     }
 
     pub fn set_language(&mut self, lang_str: &str) {

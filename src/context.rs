@@ -25,9 +25,9 @@ pub enum Message {
 }
 
 pub struct AppContext {
-    series_path: PathBuf,
     settings: Settings,
-    trax: Trax,
+    series_path: Option<PathBuf>,
+    trax: Option<Trax>,
     range: DateRange,
     channel: Sender<Message>,
 }
@@ -36,9 +36,14 @@ impl AppContext {
     pub fn new(channel: Sender<Message>) -> Result<AppContext> {
         let config = Configuration::load_from_yaml();
 
-        let trax = fitnesstrax::Trax::new(fitnesstrax::Params {
-            series_path: config.series_path.clone(),
-        })?;
+        let trax = if let Some(ref path) = config.series_path {
+            fitnesstrax::Trax::new(fitnesstrax::Params {
+                series_path: path.clone(),
+            })
+            .map(Some)
+        } else {
+            Ok(None)
+        }?;
 
         let range = Range::new(
             Utc::now().with_timezone(&config.timezone).date() - chrono::Duration::days(7),
@@ -56,12 +61,12 @@ impl AppContext {
         })
     }
 
-    pub fn get_series_path(&self) -> &str {
-        self.series_path.to_str().unwrap()
+    pub fn get_series_path(&self) -> Option<&PathBuf> {
+        self.series_path.as_ref()
     }
 
     pub fn set_series_path(&mut self, path: &str) {
-        self.series_path = PathBuf::from(path);
+        self.series_path = Some(PathBuf::from(path));
     }
 
     pub fn get_settings(&self) -> Settings {
@@ -118,35 +123,45 @@ impl AppContext {
     }
 
     pub fn get_history(&self) -> Result<Vec<Record<TraxRecord>>> {
-        let start_time = DateTimeTz(
-            self.range
-                .start
-                .and_hms(0, 0, 0)
-                .with_timezone(&self.settings.timezone),
-        );
-        let end_time = DateTimeTz(
-            (self.range.end + chrono::Duration::days(1))
-                .and_hms(0, 0, 0)
-                .with_timezone(&self.settings.timezone),
-        );
-        self.trax
-            .get_history(start_time, end_time)
-            .map_err(|err| Error::TraxError(err))
+        match self.trax {
+            None => Err(Error::SeriesNotOpen),
+            Some(ref trax) => {
+                let start_time = DateTimeTz(
+                    self.range
+                        .start
+                        .and_hms(0, 0, 0)
+                        .with_timezone(&self.settings.timezone),
+                );
+                let end_time = DateTimeTz(
+                    (self.range.end + chrono::Duration::days(1))
+                        .and_hms(0, 0, 0)
+                        .with_timezone(&self.settings.timezone),
+                );
+                trax.get_history(start_time, end_time)
+                    .map_err(|err| Error::TraxError(err))
+            }
+        }
     }
 
     pub fn save_records(
         &mut self,
         updated_records: Vec<(UniqueId, TraxRecord)>,
         new_records: Vec<TraxRecord>,
-    ) {
-        for (id, record) in updated_records {
-            let _ = self.trax.replace_record(id, record);
+    ) -> Result<()> {
+        match self.trax {
+            None => Err(Error::SeriesNotOpen),
+            Some(ref mut trax) => {
+                for (id, record) in updated_records {
+                    let _ = trax.replace_record(id, record);
+                }
+                for record in new_records {
+                    let _ = trax.add_record(record);
+                }
+                let history = self.get_history().unwrap();
+                self.send_notifications(Message::RecordsUpdated { records: history });
+                Ok(())
+            }
         }
-        for record in new_records {
-            let _ = self.trax.add_record(record);
-        }
-        let history = self.get_history().unwrap();
-        self.send_notifications(Message::RecordsUpdated { records: history });
     }
 
     pub fn set_range(&mut self, range: DateRange) {

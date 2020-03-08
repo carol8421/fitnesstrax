@@ -1,11 +1,12 @@
 use dimensioned::si;
+use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt;
 use std::str::FromStr;
 
 use crate::errors::Error;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum UnitSystem {
     SI,
     USA,

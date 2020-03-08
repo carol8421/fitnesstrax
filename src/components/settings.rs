@@ -10,10 +10,9 @@ use crate::components::{
 use crate::context::AppContext;
 use crate::i18n::{Text, UnitSystem};
 use crate::settings;
-use crate::settings::Settings;
 
 #[derive(Clone)]
-pub struct Preferences {
+pub struct Settings {
     widget: gtk::Box,
 
     database_path_widget: Container,
@@ -24,13 +23,13 @@ pub struct Preferences {
     ctx: Arc<RwLock<AppContext>>,
 }
 
-impl Preferences {
-    pub fn new(ctx: Arc<RwLock<AppContext>>) -> Preferences {
+impl Settings {
+    pub fn new(ctx: Arc<RwLock<AppContext>>) -> Settings {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 5);
 
         let no_widget: Option<gtk::Widget> = None;
 
-        let mut component = Preferences {
+        let mut component = Settings {
             widget: widget.clone(),
             database_path_widget: Container::new(no_widget.clone()),
             language_widget: Container::new(no_widget.clone()),
@@ -52,7 +51,12 @@ impl Preferences {
             .widget
             .pack_start(&component.units_widget.widget, false, false, 0);
 
-        let series_path = String::from(ctx.read().unwrap().get_series_path());
+        let series_path = ctx
+            .read()
+            .unwrap()
+            .get_series_path()
+            .and_then(|s| s.to_str())
+            .map(String::from);
         let settings::Settings {
             timezone,
             units,
@@ -63,7 +67,7 @@ impl Preferences {
             component.database_path_widget.swap(Some(labeled_widget_c(
                 &text.database_path(),
                 text_entry_c(
-                    &series_path,
+                    &series_path.unwrap_or(String::from("")),
                     Box::new(enclose!(ctx => move |s| ctx.write().unwrap().set_series_path(s))),
                 ),
             )));
@@ -95,7 +99,7 @@ impl Preferences {
     fn set_language(&mut self, language: &str) {
         let (
             series_path,
-            Settings {
+            settings::Settings {
                 text,
                 timezone,
                 units,
@@ -103,14 +107,19 @@ impl Preferences {
         ) = {
             let mut ctx = self.ctx.write().unwrap();
             ctx.set_language(language);
-            (String::from(ctx.get_series_path()), ctx.get_settings())
+            (
+                ctx.get_series_path()
+                    .and_then(|s| s.to_str())
+                    .map(String::from),
+                ctx.get_settings(),
+            )
         };
 
         let ctx = self.ctx.clone();
         self.database_path_widget.swap(Some(labeled_widget_c(
             &text.database_path(),
             text_entry_c(
-                &series_path,
+                &series_path.unwrap_or(String::from("")),
                 Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
             ),
         )));
@@ -137,13 +146,13 @@ impl Preferences {
     }
 }
 
-impl Component for Preferences {
+impl Component for Settings {
     fn widget(&self) -> gtk::Widget {
         self.widget.clone().upcast::<gtk::Widget>()
     }
 }
 
-fn language_menu(text: &Text, component: Rc<RefCell<Preferences>>) -> gtk::Widget {
+fn language_menu(text: &Text, component: Rc<RefCell<Settings>>) -> gtk::Widget {
     labeled_widget_c(
         text.language().as_str(),
         dropmenu_c(
@@ -154,7 +163,7 @@ fn language_menu(text: &Text, component: Rc<RefCell<Preferences>>) -> gtk::Widge
     )
 }
 
-fn timezone_menu(text: &Text, timezone: &Tz, component: Rc<RefCell<Preferences>>) -> gtk::Widget {
+fn timezone_menu(text: &Text, timezone: &Tz, component: Rc<RefCell<Settings>>) -> gtk::Widget {
     labeled_widget_c(
         &text.timezone(),
         dropmenu_c(
@@ -168,7 +177,7 @@ fn timezone_menu(text: &Text, timezone: &Tz, component: Rc<RefCell<Preferences>>
     )
 }
 
-fn units_menu(text: &Text, units: &UnitSystem, component: Rc<RefCell<Preferences>>) -> gtk::Widget {
+fn units_menu(text: &Text, units: &UnitSystem, component: Rc<RefCell<Settings>>) -> gtk::Widget {
     labeled_widget_c(
         &text.units(),
         dropmenu_c(

@@ -1,21 +1,13 @@
 use crate::context::{AppContext, Message};
-use emseries::Record;
-use fitnesstrax::TraxRecord;
 use gtk::prelude::*;
 use std::sync::{Arc, RwLock};
 
 use crate::components::*;
-use crate::settings::Settings;
-use crate::types::DateRange;
 
 pub struct MainWindow {
-    widget: gtk::ApplicationWindow,
-    ctx: Arc<RwLock<AppContext>>,
-
     history_label: gtk::Label,
     settings_label: gtk::Label,
     history: History,
-    settings_ui: Preferences,
 }
 
 impl MainWindow {
@@ -35,7 +27,7 @@ impl MainWindow {
 
         let notebook = gtk::Notebook::new();
         let history = History::new(range, records, settings.clone(), ctx.clone());
-        let settings_ui = Preferences::new(ctx.clone());
+        let settings_ui = Settings::new(ctx.clone());
 
         let history_label = gtk::Label::new(Some(&settings.text.history()));
         let settings_label = gtk::Label::new(Some(&settings.text.preferences()));
@@ -48,40 +40,11 @@ impl MainWindow {
         widget.show();
 
         MainWindow {
-            widget,
-            ctx,
-
             history_label,
             settings_label,
             history,
-            settings_ui,
         }
     }
-
-    /*
-    fn render(
-        &mut self,
-        settings: Settings,
-        range: DateRange,
-        records: Vec<Record<TraxRecord>>,
-    ) -> &gtk::ApplicationWindow {
-        match self.component {
-            Some(MainWindowComponent {
-                ref history_label,
-                ref settings_label,
-                ref mut history,
-                ref mut settings_ui,
-                ..
-            }) => {
-                history_label.set_markup(&settings.text.history());
-                settings_label.set_markup(&settings.text.preferences());
-                history.render(settings, range, records);
-                settings_ui.render();
-            }
-        }
-        &self.widget
-    }
-    */
 
     pub fn update_from(&mut self, message: Message) {
         match message {
