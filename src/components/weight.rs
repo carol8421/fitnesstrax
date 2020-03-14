@@ -1,8 +1,7 @@
 use emseries::{Recordable, UniqueId};
 use fitnesstrax::weight::WeightRecord;
-use gtk::prelude::*;
 
-use crate::components::basics::validated_text_entry_c;
+use crate::components::basics::{labeled_widget_c, validated_text_entry_c, LabelPosition};
 use crate::errors::Error;
 use crate::settings::Settings;
 
@@ -15,8 +14,8 @@ pub fn weight_record_edit_c(
     record: WeightRecord,
     settings: &Settings,
     on_update: Box<dyn Fn(UniqueId, WeightRecord)>,
-) -> gtk::Box {
-    let b = gtk::Box::new(gtk::Orientation::Horizontal, 5);
+) -> gtk::Widget {
+    //let b = gtk::Box::new(gtk::Orientation::Horizontal, 5);
     let u1 = settings.units.clone();
     let u2 = settings.units.clone();
     let entry = validated_text_entry_c(
@@ -35,9 +34,13 @@ pub fn weight_record_edit_c(
         Box::new(move |val| on_update(id.clone(), WeightRecord::new(record.timestamp(), val))),
     );
 
-    let units_label = gtk::Label::new(Some(&settings.text.mass_label()));
+    labeled_widget_c(
+        &settings.text.weight(),
+        labeled_widget_c(&settings.text.mass_label(), entry, LabelPosition::After),
+        LabelPosition::Before,
+    )
 
-    b.pack_start(&entry, false, false, 5);
-    b.pack_start(&units_label, false, false, 5);
-    b
+    //b.pack_start(&entry, false, false, 5);
+    //b.pack_start(&units_label, false, false, 5);
+    //b
 }

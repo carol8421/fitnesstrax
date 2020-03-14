@@ -13,6 +13,8 @@ add-time-distance-workout = Add Time/Distance Workout
 cancel = Cancel
 cycling = Cycling
 database-path = Database Path
+distance = Distance
+duration = Duration
 edit = Edit
 enter-distance = Enter distance
 enter-duration = Enter duration
@@ -41,16 +43,20 @@ step-count = {$count ->
 }
 swimming = Swimming
 timezone = Timezone
+time-of-day = Time
 units = Units
 walking = Walking
 weight = Weight
 ";
 
 const ESPERANTO_STRINGS: &str = "
+activity = Aktiveco
 add-time-distance-workout = Aldonu Trejnadon de Daŭro/Distanco
 cancel = Nuligi
 cycling = Biciklado
 database-path = Vojo al Datumbazo
+distance = Distanco
+duration = Daŭro
 edit = Redaktu
 enter-distance = Eniru distanco
 enter-duration = Eniru daŭro
@@ -79,6 +85,7 @@ step-count = {$count ->
 }
 swimming = Naĝado
 timezone = Horzono
+time-of-day = Hora
 units = Unuoj
 walking = Promenadi
 weight = Pezo
@@ -150,8 +157,16 @@ impl Text {
         self.tr("cycling", None).unwrap()
     }
 
-    pub fn database_path<'s>(&'s self) -> String {
+    pub fn database_path(&self) -> String {
         self.tr("database-path", None).unwrap()
+    }
+
+    pub fn distance(&self) -> String {
+        self.tr("distance", None).unwrap()
+    }
+
+    pub fn duration(&self) -> String {
+        self.tr("duration", None).unwrap()
     }
 
     pub fn edit(&self) -> String {
@@ -224,7 +239,7 @@ impl Text {
         self.tr("timezone", None).unwrap()
     }
 
-    pub fn time_distance_activity<'s>(&'s self, activity: &timedistance::ActivityType) -> String {
+    pub fn time_distance_activity(&self, activity: &timedistance::ActivityType) -> String {
         match activity {
             timedistance::ActivityType::Cycling => self.tr("cycling", None),
             timedistance::ActivityType::Rowing => self.tr("rowing", None),
@@ -235,12 +250,20 @@ impl Text {
         .unwrap()
     }
 
+    pub fn time_of_day(&self) -> String {
+        self.tr("time-of-day", None).unwrap()
+    }
+
     pub fn units(&self) -> String {
         self.tr("units", None).unwrap()
     }
 
     pub fn walking(&self) -> String {
         self.tr("walking", None).unwrap()
+    }
+
+    pub fn weight(&self) -> String {
+        self.tr("weight", None).unwrap()
     }
 
     pub fn tr(&self, id: &str, args: Option<&FluentArgs>) -> Option<String> {

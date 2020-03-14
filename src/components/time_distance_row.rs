@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 use crate::components::basics::{
     distance_c, distance_edit_c, dropmenu_c, duration_c, duration_edit_c, labeled_widget_c, time_c,
-    time_edit_c, MenuOptions,
+    time_edit_c, LabelPosition, MenuOptions,
 };
 use crate::settings::Settings;
 use fitnesstrax::timedistance::{activity_types, ActivityType, TimeDistanceRecord};
@@ -84,22 +84,26 @@ pub fn time_distance_record_edit_c(
             .with_timezone(&settings.timezone)
             .time();
         let settings = settings.clone();
-        time_edit_c(
-            &time,
-            Box::new(enclose!(id, record, on_update => move |val| {
-                let mut r = record.borrow_mut();
-                r.timestamp = r.timestamp.map(|ts| {
-                    ts.clone()
-                        .with_hour(val.hour())
-                        .unwrap()
-                        .with_minute(val.minute())
-                        .unwrap()
-                        .with_second(val.second())
-                        .unwrap()
-                        .with_timezone(&settings.timezone)
-                });
-                on_update(id.clone(), r.clone());
-            })),
+        labeled_widget_c(
+            &settings.text.time_of_day(),
+            time_edit_c(
+                &time,
+                Box::new(enclose!(id, record, on_update => move |val| {
+                    let mut r = record.borrow_mut();
+                    r.timestamp = r.timestamp.map(|ts| {
+                        ts.clone()
+                            .with_hour(val.hour())
+                            .unwrap()
+                            .with_minute(val.minute())
+                            .unwrap()
+                            .with_second(val.second())
+                            .unwrap()
+                            .with_timezone(&settings.timezone)
+                    });
+                    on_update(id.clone(), r.clone());
+                })),
+            ),
+            LabelPosition::Before,
         )
     };
 
@@ -132,22 +136,27 @@ pub fn time_distance_record_edit_c(
                     on_update(id.clone(), r.clone());
                 })),
             ),
+            LabelPosition::Before,
         )
     };
 
     let distance_entry = {
         let distance = record.borrow().distance.clone();
-        distance_edit_c(
-            &distance,
-            &settings.units,
-            Box::new(enclose!(id, record, on_update => move |res| match res {
-                Some(val) => {
-                    let mut r = record.borrow_mut();
-                    r.distance = Some(val);
-                    on_update(id.clone(), r.clone());
-                }
-                None => (),
-            })),
+        labeled_widget_c(
+            &settings.text.distance(),
+            distance_edit_c(
+                &distance,
+                &settings.units,
+                Box::new(enclose!(id, record, on_update => move |res| match res {
+                    Some(val) => {
+                        let mut r = record.borrow_mut();
+                        r.distance = Some(val);
+                        on_update(id.clone(), r.clone());
+                    }
+                    None => (),
+                })),
+            ),
+            LabelPosition::Before,
         )
     };
 
@@ -156,16 +165,20 @@ pub fn time_distance_record_edit_c(
         let record = record.clone();
         let on_update = on_update.clone();
         let duration = record.borrow().duration.clone();
-        duration_edit_c(
-            &duration,
-            Box::new(move |res| match res {
-                Some(val) => {
-                    let mut r = record.borrow_mut();
-                    r.duration = Some(val);
-                    on_update(id.clone(), r.clone());
-                }
-                None => (),
-            }),
+        labeled_widget_c(
+            &settings.text.duration(),
+            duration_edit_c(
+                &duration,
+                Box::new(move |res| match res {
+                    Some(val) => {
+                        let mut r = record.borrow_mut();
+                        r.duration = Some(val);
+                        on_update(id.clone(), r.clone());
+                    }
+                    None => (),
+                }),
+            ),
+            LabelPosition::Before,
         )
     };
 

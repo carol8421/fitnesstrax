@@ -5,7 +5,7 @@ use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 use crate::components::{
-    dropmenu_c, labeled_widget_c, text_entry_c, Component, Container, MenuOptions,
+    dropmenu_c, labeled_widget_c, text_entry_c, Component, Container, LabelPosition, MenuOptions,
 };
 use crate::context::AppContext;
 use crate::i18n::{Text, UnitSystem};
@@ -70,6 +70,7 @@ impl Settings {
                     &series_path.unwrap_or(String::from("")),
                     Box::new(enclose!(ctx => move |s| ctx.write().unwrap().set_series_path(s))),
                 ),
+                LabelPosition::Before,
             )));
         }
 
@@ -122,6 +123,7 @@ impl Settings {
                 &series_path.unwrap_or(String::from("")),
                 Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
             ),
+            LabelPosition::Before,
         )));
 
         {
@@ -160,6 +162,7 @@ fn language_menu(text: &Text, component: Rc<RefCell<Settings>>) -> gtk::Widget {
             text.language_id(),
             Box::new(move |s| component.borrow_mut().set_language(s)),
         ),
+        LabelPosition::Before,
     )
 }
 
@@ -174,6 +177,7 @@ fn timezone_menu(text: &Text, timezone: &Tz, component: Rc<RefCell<Settings>>) -
             timezone.name(),
             Box::new(enclose!(component => move |s| component.borrow_mut().set_timezone(s))),
         ),
+        LabelPosition::Before,
     )
 }
 
@@ -188,5 +192,6 @@ fn units_menu(text: &Text, units: &UnitSystem, component: Rc<RefCell<Settings>>)
             &String::from(units),
             Box::new(enclose!(component => move |s| component.borrow_mut().set_units(s))),
         ),
+        LabelPosition::Before,
     )
 }
