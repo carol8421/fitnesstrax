@@ -1,6 +1,6 @@
 use chrono::Date;
 use chrono_tz::Tz;
-use emseries::Record;
+use emseries::UniqueId;
 use fitnesstrax::TraxRecord;
 use gtk::prelude::*;
 use std::sync::{Arc, RwLock};
@@ -17,7 +17,7 @@ pub struct History {
     history_box: gtk::Box,
 
     range: DateRange,
-    records: Vec<Record<TraxRecord>>,
+    records: Vec<(UniqueId, TraxRecord)>,
     settings: Settings,
 
     ctx: Arc<RwLock<AppContext>>,
@@ -26,7 +26,7 @@ pub struct History {
 impl History {
     pub fn new(
         range: DateRange,
-        records: Vec<Record<TraxRecord>>,
+        records: Vec<(UniqueId, TraxRecord)>,
         settings: Settings,
         ctx: Arc<RwLock<AppContext>>,
     ) -> History {
@@ -71,7 +71,7 @@ impl History {
         self.render();
     }
 
-    pub fn set_records(&mut self, records: Vec<Record<TraxRecord>>) {
+    pub fn set_records(&mut self, records: Vec<(UniqueId, TraxRecord)>) {
         self.records = records;
         self.render();
     }

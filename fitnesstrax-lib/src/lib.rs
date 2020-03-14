@@ -6,7 +6,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use dimensioned::si::{Kilogram, Meter, Second};
-use emseries::DateTimeTz;
+use emseries::{DateTimeTz, UniqueId};
 use std::path;
 
 pub mod error;
@@ -144,10 +144,7 @@ impl Trax {
         record: TraxRecord,
     ) -> Result<emseries::UniqueId> {
         self.series
-            .update(emseries::Record {
-                id: uid.clone(),
-                data: record,
-            })
+            .update(uid.clone(), record)
             .map_err(|err| Error::SeriesError(err))?;
         Ok(uid)
     }
@@ -155,7 +152,7 @@ impl Trax {
     pub fn get_record(&self, uid: &emseries::UniqueId) -> Result<Option<TraxRecord>> {
         self.series
             .get(uid)
-            .map(|mr| mr.map(|r| r.data))
+            .map(|mr| mr)
             .map_err(|err| Error::SeriesError(err))
     }
 
@@ -169,7 +166,7 @@ impl Trax {
         &self,
         start: DateTimeTz,
         end: DateTimeTz,
-    ) -> Result<Vec<emseries::Record<TraxRecord>>> {
+    ) -> Result<Vec<(&UniqueId, &TraxRecord)>> {
         self.series
             .search(emseries::And {
                 lside: emseries::StartTime {

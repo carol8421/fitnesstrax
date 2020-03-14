@@ -7,20 +7,20 @@ use crate::errors::{Error, Result};
 use crate::range::Range;
 use crate::settings::Settings;
 use crate::types::DateRange;
-use emseries::{DateTimeTz, Record, UniqueId};
+use emseries::{DateTimeTz, UniqueId};
 use fitnesstrax::{Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
 pub enum Message {
     ChangeRange {
         range: DateRange,
-        records: Vec<Record<TraxRecord>>,
+        records: Vec<(UniqueId, TraxRecord)>,
     },
     ChangeSettings {
         settings: Settings,
     },
     RecordsUpdated {
-        records: Vec<Record<TraxRecord>>,
+        records: Vec<(UniqueId, TraxRecord)>,
     },
 }
 
@@ -122,7 +122,7 @@ impl AppContext {
         self.range.clone()
     }
 
-    pub fn get_history(&self) -> Result<Vec<Record<TraxRecord>>> {
+    pub fn get_history(&self) -> Result<Vec<(UniqueId, TraxRecord)>> {
         match self.trax {
             None => Err(Error::SeriesNotOpen),
             Some(ref trax) => {
@@ -138,6 +138,11 @@ impl AppContext {
                         .with_timezone(&self.settings.timezone),
                 );
                 trax.get_history(start_time, end_time)
+                    .map(|v| {
+                        v.iter()
+                            .map(|(ref id, ref record)| ((*id).clone(), (*record).clone()))
+                            .collect()
+                    })
                     .map_err(|err| Error::TraxError(err))
             }
         }

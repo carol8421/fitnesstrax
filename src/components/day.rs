@@ -1,5 +1,5 @@
 use dimensioned::si::KG;
-use emseries::{DateTimeTz, Record, Recordable, UniqueId};
+use emseries::{DateTimeTz, Recordable, UniqueId};
 use fitnesstrax::steps::StepRecord;
 use fitnesstrax::weight::WeightRecord;
 use fitnesstrax::TraxRecord;
@@ -29,7 +29,7 @@ pub struct Day {
     ctx: Arc<RwLock<AppContext>>,
 
     date: chrono::Date<chrono_tz::Tz>,
-    records: Vec<Record<TraxRecord>>,
+    records: Vec<(UniqueId, TraxRecord)>,
     settings: Settings,
 }
 
@@ -43,7 +43,7 @@ impl Day {
     pub fn new(
         ctx: Arc<RwLock<AppContext>>,
         date: chrono::Date<chrono_tz::Tz>,
-        records: Vec<Record<TraxRecord>>,
+        records: Vec<(UniqueId, TraxRecord)>,
         settings: Settings,
     ) -> Day {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 5);
@@ -58,7 +58,7 @@ impl Day {
 
         let view = Container::new(Some(day_c(
             &date,
-            records.iter().map(|rec| &rec.data).collect(),
+            records.iter().map(|rec| &rec.1).collect(),
             &settings,
         )));
 
@@ -91,7 +91,7 @@ impl Day {
         self.view.borrow_mut().swap(Some(
             day_c(
                 &self.date,
-                self.records.iter().map(|rec| &rec.data).collect(),
+                self.records.iter().map(|rec| &rec.1).collect(),
                 &self.settings,
             )
             .widget(),
@@ -101,7 +101,7 @@ impl Day {
     fn edit(&mut self) {
         let component = Rc::new(RefCell::new(self.clone()));
         let record_map = self.records.iter().fold(HashMap::new(), |mut acc, rec| {
-            acc.insert(rec.id.clone(), rec.data.clone());
+            acc.insert(rec.0.clone(), rec.1.clone());
             acc
         });
         self.view.borrow_mut().swap(
@@ -120,7 +120,8 @@ impl Day {
         thread::spawn(move || {
             ctx.write()
                 .unwrap()
-                .save_records(updated_records, new_records);
+                .save_records(updated_records, new_records)
+                .expect("record save failed");
         });
         self.view();
     }

@@ -15,6 +15,8 @@ macro_rules! enclose {
     );
 }
 
+use gtk::prelude::*;
+
 mod basics;
 mod date_selector;
 mod day;
@@ -25,7 +27,6 @@ mod rep_duration;
 mod set_rep;
 mod settings;
 mod steps;
-mod swappable;
 mod time_distance;
 mod time_distance_row;
 mod weight;
@@ -37,7 +38,6 @@ pub use history::History;
 pub use main_window::MainWindow;
 pub use range_selector::RangeSelector;
 pub use settings::Settings;
-pub use swappable::SwappableComponent;
 
 pub trait Component {
     fn widget(&self) -> gtk::Widget;
@@ -46,5 +46,11 @@ pub trait Component {
 impl Component for gtk::Widget {
     fn widget(&self) -> gtk::Widget {
         self.clone()
+    }
+}
+
+impl Component for gtk::Box {
+    fn widget(&self) -> gtk::Widget {
+        self.clone().upcast::<gtk::Widget>()
     }
 }

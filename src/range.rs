@@ -8,7 +8,7 @@ extern crate gtk;
 
 use std::collections::HashMap;
 
-use emseries::Recordable;
+use emseries::{Recordable, UniqueId};
 pub use fitnesstrax::{Params, Result, Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
@@ -50,16 +50,16 @@ pub fn dates_in_range(
 
 pub fn group_by_date(
     range: &Range<chrono::Date<chrono_tz::Tz>>,
-    records: Vec<emseries::Record<TraxRecord>>,
-) -> HashMap<chrono::Date<chrono_tz::Tz>, Vec<emseries::Record<TraxRecord>>> {
-    let mut groups: HashMap<chrono::Date<chrono_tz::Tz>, Vec<emseries::Record<TraxRecord>>> =
+    records: Vec<(UniqueId, TraxRecord)>,
+) -> HashMap<chrono::Date<chrono_tz::Tz>, Vec<(UniqueId, TraxRecord)>> {
+    let mut groups: HashMap<chrono::Date<chrono_tz::Tz>, Vec<(UniqueId, TraxRecord)>> =
         HashMap::new();
     for date in dates_in_range(range) {
         let compare_against_date = move |target_date| target_date == date;
 
         let recs = records
             .iter()
-            .filter(|r| compare_against_date(r.timestamp().0.date()))
+            .filter(|r| compare_against_date(r.1.timestamp().0.date()))
             .cloned()
             .collect();
 
@@ -75,7 +75,7 @@ mod test {
     use chrono::TimeZone;
     use chrono_tz::America::New_York;
     use dimensioned::si::KG;
-    use emseries::DateTimeTz;
+    use emseries::{DateTimeTz, UniqueId};
     use fitnesstrax::TraxRecord;
 
     #[test]
@@ -94,18 +94,27 @@ mod test {
         let range = Range::new(New_York.ymd(2019, 5, 1), New_York.ymd(2019, 5, 15));
 
         let recs = vec![
-            emseries::Record::new(TraxRecord::weight(
-                DateTimeTz(New_York.ymd(2019, 5, 5).and_hms(0, 0, 0)),
-                50. * KG,
-            )),
-            emseries::Record::new(TraxRecord::weight(
-                DateTimeTz(New_York.ymd(2019, 5, 5).and_hms(0, 0, 0)),
-                57. * KG,
-            )),
-            emseries::Record::new(TraxRecord::weight(
-                DateTimeTz(New_York.ymd(2019, 5, 7).and_hms(0, 0, 0)),
-                58. * KG,
-            )),
+            (
+                UniqueId::new(),
+                TraxRecord::weight(
+                    DateTimeTz(New_York.ymd(2019, 5, 5).and_hms(0, 0, 0)),
+                    50. * KG,
+                ),
+            ),
+            (
+                UniqueId::new(),
+                TraxRecord::weight(
+                    DateTimeTz(New_York.ymd(2019, 5, 5).and_hms(0, 0, 0)),
+                    57. * KG,
+                ),
+            ),
+            (
+                UniqueId::new(),
+                TraxRecord::weight(
+                    DateTimeTz(New_York.ymd(2019, 5, 7).and_hms(0, 0, 0)),
+                    58. * KG,
+                ),
+            ),
         ];
 
         let groups = group_by_date(&range, recs);
