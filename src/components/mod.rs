@@ -13,6 +13,7 @@ macro_rules! enclose {
             move |$(enclose!(@param $p),)+| $body
         }
     );
+    //(lifetime, $($n:ident),+ => move
 }
 
 use gtk::prelude::*;

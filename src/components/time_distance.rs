@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::components::time_distance_row::time_distance_record_edit_c;
-use crate::settings::Settings;
+use crate::i18n::{Text, UnitSystem};
 
 #[derive(Clone)]
 pub struct TimeDistanceEdit {
@@ -14,7 +14,9 @@ pub struct TimeDistanceEdit {
     record_box: gtk::Box,
 
     records: HashMap<UniqueId, TimeDistanceRecord>,
-    settings: Settings,
+    timezone: chrono_tz::Tz,
+    text: Text,
+    units: UnitSystem,
     updated_records: Rc<RefCell<HashMap<UniqueId, TimeDistanceRecord>>>,
     new_records: Rc<RefCell<HashMap<UniqueId, TimeDistanceRecord>>>,
 }
@@ -23,7 +25,9 @@ impl TimeDistanceEdit {
     pub fn new(
         date: chrono::Date<chrono_tz::Tz>,
         records: Vec<(&UniqueId, &TimeDistanceRecord)>,
-        settings: Settings,
+        timezone: chrono_tz::Tz,
+        text: Text,
+        units: UnitSystem,
     ) -> TimeDistanceEdit {
         let mut record_hash: HashMap<UniqueId, TimeDistanceRecord> = HashMap::new();
         for (id, rec) in records.iter() {
@@ -41,15 +45,16 @@ impl TimeDistanceEdit {
             record_box,
 
             records: record_hash,
-            settings: settings.clone(),
+            timezone,
+            text: text.clone(),
+            units,
             updated_records,
             new_records: new_records.clone(),
         };
 
         let button_box = {
             let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 5);
-            let new_button =
-                gtk::Button::new_with_label(&settings.text.add_time_distance_workout());
+            let new_button = gtk::Button::new_with_label(&text.add_time_distance_workout());
             new_button.show();
             button_box.pack_start(&new_button, false, false, 5);
             new_button.connect_clicked(enclose!(w, new_records => move |_| {
@@ -94,7 +99,9 @@ impl TimeDistanceEdit {
                         &time_distance_record_edit_c(
                             id.clone(),
                             rec.clone(),
-                            self.settings.clone(),
+                            self.timezone.clone(),
+                            &self.text,
+                            &self.units,
                             Box::new(move |id, rec| {
                                 updated_records.borrow_mut().insert(id, rec);
                             }),
@@ -109,7 +116,9 @@ impl TimeDistanceEdit {
                         &time_distance_record_edit_c(
                             id.clone(),
                             record.clone(),
-                            self.settings.clone(),
+                            self.timezone.clone(),
+                            &self.text,
+                            &self.units,
                             Box::new(move |id, rec| {
                                 updated_records.borrow_mut().insert(id, rec);
                             }),
@@ -128,7 +137,9 @@ impl TimeDistanceEdit {
                 &time_distance_record_edit_c(
                     id.clone(),
                     record.clone(),
-                    self.settings.clone(),
+                    self.timezone.clone(),
+                    &self.text,
+                    &self.units,
                     Box::new(move |id, rec| {
                         new_records.borrow_mut().insert(id, rec);
                     }),

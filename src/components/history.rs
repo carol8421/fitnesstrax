@@ -6,7 +6,8 @@ use gtk::prelude::*;
 use std::sync::{Arc, RwLock};
 
 use crate::components::{Component, Day, RangeSelector};
-use crate::context::AppContext;
+use crate::context::Application;
+use crate::i18n::{Text, UnitSystem};
 use crate::range::group_by_date;
 use crate::settings::Settings;
 use crate::types::DateRange;
@@ -18,17 +19,21 @@ pub struct History {
 
     range: DateRange,
     records: Vec<(UniqueId, TraxRecord)>,
-    settings: Settings,
+    text: Text,
+    timezone: chrono_tz::Tz,
+    units: UnitSystem,
 
-    ctx: Arc<RwLock<AppContext>>,
+    ctx: Arc<RwLock<Application>>,
 }
 
 impl History {
     pub fn new(
         range: DateRange,
         records: Vec<(UniqueId, TraxRecord)>,
-        settings: Settings,
-        ctx: Arc<RwLock<AppContext>>,
+        text: &Text,
+        timezone: &chrono_tz::Tz,
+        units: &UnitSystem,
+        ctx: Arc<RwLock<Application>>,
     ) -> History {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 5);
         let history_box = gtk::Box::new(gtk::Orientation::Vertical, 5);
@@ -37,7 +42,7 @@ impl History {
             let ctx = ctx.clone();
             RangeSelector::new(
                 range.clone(),
-                Box::new(move |new_range| ctx.write().unwrap().set_range(new_range)),
+                Box::new(move |new_range| ctx.write().unwrap().set_range(new_range).unwrap()),
             )
         };
         let no_adjustment: Option<&gtk::Adjustment> = None;
@@ -55,9 +60,13 @@ impl History {
         let mut component = History {
             widget,
             history_box,
+
             range,
             records,
-            settings,
+            text: text.clone(),
+            timezone: timezone.clone(),
+            units: units.clone(),
+
             ctx,
         };
 
@@ -76,10 +85,12 @@ impl History {
         self.render();
     }
 
+    /*
     pub fn set_settings(&mut self, settings: Settings) {
         self.settings = settings;
         self.render();
     }
+    */
 
     fn render(&mut self) {
         let grouped_history = group_by_date(&self.range, self.records.clone());
@@ -93,7 +104,9 @@ impl History {
                 ctx,
                 *date.clone(),
                 grouped_history.get(date).unwrap().clone(),
-                self.settings.clone(),
+                self.timezone.clone(),
+                self.text.clone(),
+                self.units.clone(),
             );
             self.history_box.pack_start(&day.widget(), true, true, 25);
         });

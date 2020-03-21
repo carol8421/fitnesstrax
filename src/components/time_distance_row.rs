@@ -10,16 +10,16 @@ use crate::components::basics::{
     distance_c, distance_edit_c, dropmenu_c, duration_c, duration_edit_c, labeled_widget_c, time_c,
     time_edit_c, MenuOptions,
 };
-use crate::settings::Settings;
+use crate::i18n::{Text, UnitSystem};
 use fitnesstrax::timedistance::{activity_types, ActivityType, TimeDistanceRecord};
 
-fn activity_c(activity: &ActivityType, settings: &Settings) -> gtk::Label {
+fn activity_c(activity: &ActivityType, text: &Text) -> gtk::Label {
     let activity_str = match activity {
-        ActivityType::Cycling => settings.text.cycling(),
-        ActivityType::Rowing => settings.text.rowing(),
-        ActivityType::Running => settings.text.running(),
-        ActivityType::Swimming => settings.text.swimming(),
-        ActivityType::Walking => settings.text.walking(),
+        ActivityType::Cycling => text.cycling(),
+        ActivityType::Rowing => text.rowing(),
+        ActivityType::Running => text.running(),
+        ActivityType::Swimming => text.swimming(),
+        ActivityType::Walking => text.walking(),
     };
 
     gtk::Label::new(Some(&activity_str))
@@ -27,27 +27,23 @@ fn activity_c(activity: &ActivityType, settings: &Settings) -> gtk::Label {
 
 pub fn time_distance_c(
     record: &fitnesstrax::timedistance::TimeDistanceRecord,
-    settings: &Settings,
+    timezone: &chrono_tz::Tz,
+    text: &Text,
+    units: &UnitSystem,
 ) -> gtk::Box {
     let container = gtk::Box::new(gtk::Orientation::Horizontal, 5);
 
     container.pack_start(
-        &time_c(
-            &record
-                .timestamp()
-                .0
-                .with_timezone(&settings.timezone)
-                .time(),
-        ),
+        &time_c(&record.timestamp().0.with_timezone(timezone).time()),
         false,
         false,
         5,
     );
-    container.pack_start(&activity_c(&record.activity, &settings), false, false, 5);
+    container.pack_start(&activity_c(&record.activity, text), false, false, 5);
     container.pack_start(
         &record
             .distance
-            .map(|r| distance_c(&r, &settings.units))
+            .map(|r| distance_c(&r, units))
             .unwrap_or(gtk::Label::new(Some("---"))),
         false,
         false,
@@ -69,7 +65,9 @@ pub fn time_distance_c(
 pub fn time_distance_record_edit_c(
     id: UniqueId,
     record: TimeDistanceRecord,
-    settings: Settings,
+    timezone: chrono_tz::Tz,
+    text: &Text,
+    units: &UnitSystem,
     on_update: Box<dyn Fn(UniqueId, TimeDistanceRecord)>,
 ) -> gtk::Box {
     let on_update = Rc::new(on_update);
@@ -81,9 +79,8 @@ pub fn time_distance_record_edit_c(
             .borrow()
             .timestamp()
             .0
-            .with_timezone(&settings.timezone)
+            .with_timezone(&timezone)
             .time();
-        let settings = settings.clone();
         time_edit_c(
             &time,
             Box::new(enclose!(id, record, on_update => move |val| {
@@ -96,7 +93,7 @@ pub fn time_distance_record_edit_c(
                         .unwrap()
                         .with_second(val.second())
                         .unwrap()
-                        .with_timezone(&settings.timezone)
+                        .with_timezone(&timezone)
                 });
                 on_update(id.clone(), r.clone());
             })),
@@ -109,7 +106,7 @@ pub fn time_distance_record_edit_c(
             .map(|activity| {
                 (
                     format!("{:?}", activity),
-                    settings.text.time_distance_activity(activity),
+                    text.time_distance_activity(activity),
                 )
             })
             .collect();
@@ -122,7 +119,7 @@ pub fn time_distance_record_edit_c(
             .collect();
         let activity_id = format!("{:?}", record.borrow().activity);
         labeled_widget_c(
-            &settings.text.activity(),
+            &text.activity(),
             dropmenu_c(
                 MenuOptions(menu_),
                 &activity_id,
@@ -139,7 +136,7 @@ pub fn time_distance_record_edit_c(
         let distance = record.borrow().distance.clone();
         distance_edit_c(
             &distance,
-            &settings.units,
+            units,
             Box::new(enclose!(id, record, on_update => move |res| match res {
                 Some(val) => {
                     let mut r = record.borrow_mut();

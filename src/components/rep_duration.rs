@@ -17,10 +17,7 @@ fn sets_c(sets: &Vec<Second<f64>>) -> gtk::Label {
     gtk::Label::new(Some(&set_strs.join(" ")))
 }
 
-pub fn rep_duration_c(
-    record: &fitnesstrax::repduration::RepDurationRecord,
-    _settings: &Settings,
-) -> gtk::Box {
+pub fn rep_duration_c(record: &fitnesstrax::repduration::RepDurationRecord) -> gtk::Box {
     let container = gtk::Box::new(gtk::Orientation::Horizontal, 5);
 
     container.add(&activity_c(&record.activity));

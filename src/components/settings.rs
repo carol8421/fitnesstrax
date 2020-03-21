@@ -7,9 +7,8 @@ use std::sync::{Arc, RwLock};
 use crate::components::{
     dropmenu_c, labeled_widget_c, text_entry_c, Component, Container, MenuOptions,
 };
-use crate::context::AppContext;
+use crate::context::Application;
 use crate::i18n::{Text, UnitSystem};
-use crate::settings;
 
 #[derive(Clone)]
 pub struct Settings {
@@ -20,11 +19,11 @@ pub struct Settings {
     timezone_widget: Container,
     units_widget: Container,
 
-    ctx: Arc<RwLock<AppContext>>,
+    ctx: Arc<RwLock<Application>>,
 }
 
 impl Settings {
-    pub fn new(ctx: Arc<RwLock<AppContext>>) -> Settings {
+    pub fn new(ctx: Arc<RwLock<Application>>) -> Settings {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 5);
 
         let no_widget: Option<gtk::Widget> = None;
@@ -51,24 +50,25 @@ impl Settings {
             .widget
             .pack_start(&component.units_widget.widget, false, false, 0);
 
-        let series_path = ctx
-            .read()
-            .unwrap()
-            .get_series_path()
-            .and_then(|s| s.to_str())
-            .map(String::from);
-        let settings::Settings {
-            timezone,
-            units,
-            text,
-        } = ctx.read().unwrap().get_settings();
+        let (series_path, settings) = {
+            let ctx = ctx.read().unwrap();
+            let state = ctx.get_state();
+
+            (
+                state.series_path().map(|v| v.clone()),
+                state.settings().clone(),
+            )
+        };
 
         {
+            let ctx = ctx.clone();
             component.database_path_widget.swap(Some(labeled_widget_c(
-                &text.database_path(),
+                &settings.text.database_path(),
                 text_entry_c(
-                    &series_path.unwrap_or(String::from("")),
-                    Box::new(enclose!(ctx => move |s| ctx.write().unwrap().set_series_path(s))),
+                    &(series_path
+                        .and_then(|v| v.to_str().and_then(|v| Some(String::from(v))))
+                        .unwrap_or(String::from(""))),
+                    Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
                 ),
             )));
         }
@@ -79,14 +79,18 @@ impl Settings {
             component
                 .borrow_mut()
                 .language_widget
-                .swap(Some(language_menu(&text, component.clone())));
+                .swap(Some(language_menu(&settings.text, component.clone())));
             component
                 .borrow_mut()
                 .timezone_widget
-                .swap(Some(timezone_menu(&text, &timezone, component.clone())));
+                .swap(Some(timezone_menu(
+                    &settings.text,
+                    &settings.timezone,
+                    component.clone(),
+                )));
             component.borrow_mut().units_widget.swap(Some(units_menu(
-                &text,
-                &units,
+                &settings.text,
+                &settings.units,
                 component.clone(),
             )));
         }
@@ -97,21 +101,19 @@ impl Settings {
     }
 
     fn set_language(&mut self, language: &str) {
-        let (
-            series_path,
-            settings::Settings {
-                text,
-                timezone,
-                units,
-            },
-        ) = {
+        let (series_path, text, timezone, units) = {
             let mut ctx = self.ctx.write().unwrap();
             ctx.set_language(language);
+            let state = ctx.get_state();
+            let settings = state.settings();
             (
-                ctx.get_series_path()
+                state
+                    .series_path()
                     .and_then(|s| s.to_str())
                     .map(String::from),
-                ctx.get_settings(),
+                settings.text.clone(),
+                settings.timezone,
+                settings.units,
             )
         };
 
