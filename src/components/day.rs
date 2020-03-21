@@ -167,7 +167,9 @@ fn day_c(
             TraxRecord::TimeDistance(ref rec) => {
                 time_distance_components.push(time_distance_c(&rec, timezone, text, units))
             }
-            TraxRecord::Weight(ref rec) => weight_component = Some(weight_record_c(&rec, text)),
+            TraxRecord::Weight(ref rec) => {
+                weight_component = Some(weight_record_c(&rec, text, units))
+            }
         }
     }
 

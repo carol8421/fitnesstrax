@@ -65,10 +65,14 @@ impl MainWindow {
                     .as_ref()
                     .map(|label| label.set_markup(&text.history()));
                 self.settings_label.set_markup(&text.preferences());
-                // self.history.set_language(state);
+                self.history.as_mut().map(|h| h.set_language(text));
             }
-            Message::ChangeTimezone(timezone) => (), // self.history.set_timezone(state),
-            Message::ChangeUnits(units) => (),       // self.history.set_units(state),
+            Message::ChangeTimezone(timezone) => {
+                self.history.as_mut().map(|h| h.set_timezone(timezone));
+            }
+            Message::ChangeUnits(units) => {
+                self.history.as_mut().map(|h| h.set_units(units));
+            }
             Message::RecordsUpdated(records) => {
                 self.history.as_mut().map(|h| h.set_records(records));
             }

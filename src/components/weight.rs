@@ -6,8 +6,8 @@ use crate::components::basics::validated_text_entry_c;
 use crate::errors::Error;
 use crate::i18n::{Text, UnitSystem};
 
-pub fn weight_record_c(record: &WeightRecord, text: &Text) -> gtk::Label {
-    gtk::Label::new(Some(&text.mass(record.weight.clone())))
+pub fn weight_record_c(record: &WeightRecord, text: &Text, units: &UnitSystem) -> gtk::Label {
+    gtk::Label::new(Some(&text.mass(record.weight.clone(), units)))
 }
 
 pub fn weight_record_edit_c(

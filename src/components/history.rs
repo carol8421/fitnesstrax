@@ -85,12 +85,20 @@ impl History {
         self.render();
     }
 
-    /*
-    pub fn set_settings(&mut self, settings: Settings) {
-        self.settings = settings;
+    pub fn set_language(&mut self, text: Text) {
+        self.text = text;
         self.render();
     }
-    */
+
+    pub fn set_timezone(&mut self, timezone: chrono_tz::Tz) {
+        self.timezone = timezone;
+        self.render();
+    }
+
+    pub fn set_units(&mut self, units: UnitSystem) {
+        self.units = units;
+        self.render();
+    }
 
     fn render(&mut self) {
         let grouped_history = group_by_date(&self.range, self.records.clone());

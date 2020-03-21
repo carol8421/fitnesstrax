@@ -87,7 +87,6 @@ weight = Pezo
 #[derive(Clone)]
 pub struct Text {
     language: LanguageIdentifier,
-    units: UnitSystem,
     bundle: Arc<FluentBundle<FluentResource>>,
 }
 
@@ -116,7 +115,7 @@ fn add_language(bundle: &mut FluentBundle<FluentResource>, langid: &LanguageIden
 }
 
 impl Text {
-    pub fn new(langid: LanguageIdentifier, units: UnitSystem) -> Text {
+    pub fn new(langid: LanguageIdentifier) -> Text {
         let english_id: LanguageIdentifier = "en".parse().unwrap();
         let mut bundle = FluentBundle::new(&[langid.clone(), english_id.clone()]);
 
@@ -166,10 +165,10 @@ impl Text {
         self.tr("language", None).unwrap()
     }
 
-    pub fn mass(&self, value: Kilogram<f64>) -> String {
+    pub fn mass(&self, value: Kilogram<f64>, units: &UnitSystem) -> String {
         let mut args = FluentArgs::new();
-        args.insert("value", FluentValue::from(self.units.render_mass(value)));
-        args.insert("units", FluentValue::from(String::from(&self.units)));
+        args.insert("value", FluentValue::from(units.render_mass(value)));
+        args.insert("units", FluentValue::from(String::from(units)));
 
         self.tr("mass", Some(&args)).unwrap()
     }
