@@ -60,6 +60,12 @@ impl From<&LanguageId> for LanguageIdentifier {
     }
 }
 
+impl From<&LanguageIdentifier> for LanguageId {
+    fn from(lang: &LanguageIdentifier) -> LanguageId {
+        LanguageId(lang.clone())
+    }
+}
+
 impl Serialize for LanguageId {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(self.0.get_language())

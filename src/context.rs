@@ -2,7 +2,7 @@ use chrono::Utc;
 use glib::Sender;
 use std::path::PathBuf;
 
-use crate::config::Configuration;
+use crate::config::{Configuration, LanguageId};
 use crate::errors::{Error, Result};
 use crate::i18n::{Text, UnitSystem};
 use crate::range::Range;
@@ -191,6 +191,16 @@ impl Application {
         &self.state
     }
 
+    fn save_configuration(&self) {
+        let config = Configuration {
+            series_path: self.state.series_path().map(|p| p.clone()),
+            language: LanguageId::from(self.state.settings().text.language_id()),
+            timezone: self.state.settings().timezone.clone(),
+            units: self.state.settings().units.clone(),
+        };
+        config.save_to_yaml();
+    }
+
     pub fn set_series_path(&mut self, path: &str) {
         let trax = fitnesstrax::Trax::new(fitnesstrax::Params {
             series_path: PathBuf::from(path),
@@ -226,11 +236,13 @@ impl Application {
                 range: range.clone(),
                 settings: settings.clone(),
             }),
-        }
+        };
+        self.save_configuration();
     }
 
     pub fn set_language(&mut self, language_str: &str) {
         self.state.set_language(language_str);
+        self.save_configuration();
         if let State::Configured(ref state) = self.state {
             self.send_notifications(Message::ChangeLanguage(state.settings.text.clone()));
         }
@@ -238,6 +250,7 @@ impl Application {
 
     pub fn set_timezone(&mut self, timezone: chrono_tz::Tz) {
         self.state.set_timezone(timezone);
+        self.save_configuration();
         if let State::Configured(ref state) = self.state {
             self.send_notifications(Message::ChangeTimezone(state.settings.timezone.clone()));
         }
@@ -245,6 +258,7 @@ impl Application {
 
     pub fn set_units(&mut self, units_str: &str) {
         self.state.set_units(units_str);
+        self.save_configuration();
         if let State::Configured(ref state) = self.state {
             self.send_notifications(Message::ChangeUnits(state.settings.units.clone()));
         }

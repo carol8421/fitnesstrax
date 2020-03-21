@@ -124,13 +124,12 @@ impl Text {
 
         Text {
             language: langid.clone(),
-            units,
             bundle: Arc::new(bundle),
         }
     }
 
-    pub fn language_id(&self) -> &str {
-        self.language.get_language()
+    pub fn language_id(&self) -> &LanguageIdentifier {
+        &self.language
     }
 
     pub fn activity<'s>(&'s self) -> String {

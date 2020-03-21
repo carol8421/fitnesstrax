@@ -159,7 +159,7 @@ fn language_menu(text: &Text, component: Rc<RefCell<Settings>>) -> gtk::Widget {
         text.language().as_str(),
         dropmenu_c(
             MenuOptions(vec![("en", "English"), ("eo", "Esperanto")]),
-            text.language_id(),
+            text.language_id().get_language(),
             Box::new(move |s| component.borrow_mut().set_language(s)),
         ),
     )
