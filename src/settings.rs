@@ -14,7 +14,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(langid: LanguageIdentifier, units: UnitSystem, timezone: chrono_tz::Tz) -> Settings {
-        let text = Text::new(langid, units.clone());
+        let text = Text::new(langid);
 
         Settings {
             timezone,
@@ -33,7 +33,7 @@ impl Settings {
 
     pub fn set_language(&mut self, lang_str: &str) {
         let langid = lang_str.parse().expect("Language parsing failed");
-        self.text = Text::new(langid, self.units.clone());
+        self.text = Text::new(langid);
     }
 
     pub fn set_units(&mut self, units_str: &str) {

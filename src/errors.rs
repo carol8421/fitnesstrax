@@ -45,6 +45,9 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {
+    /* description() is deprecated:
+     * https://rust-lang.github.io/api-guidelines/interoperability.html#error-types-are-meaningful-and-well-behaved-c-good-err
+     * */
     fn description(&self) -> &str {
         match self {
             Error::ParseDistanceError => "Failed to parse a distance string",

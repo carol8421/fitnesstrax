@@ -87,7 +87,6 @@ weight = Pezo
 #[derive(Clone)]
 pub struct Text {
     language: LanguageIdentifier,
-    units: UnitSystem,
     bundle: Arc<FluentBundle<FluentResource>>,
 }
 
@@ -116,7 +115,7 @@ fn add_language(bundle: &mut FluentBundle<FluentResource>, langid: &LanguageIden
 }
 
 impl Text {
-    pub fn new(langid: LanguageIdentifier, units: UnitSystem) -> Text {
+    pub fn new(langid: LanguageIdentifier) -> Text {
         let english_id: LanguageIdentifier = "en".parse().unwrap();
         let mut bundle = FluentBundle::new(&[langid.clone(), english_id.clone()]);
 
@@ -125,13 +124,12 @@ impl Text {
 
         Text {
             language: langid.clone(),
-            units,
             bundle: Arc::new(bundle),
         }
     }
 
-    pub fn language_id(&self) -> &str {
-        self.language.get_language()
+    pub fn language_id(&self) -> &LanguageIdentifier {
+        &self.language
     }
 
     pub fn activity<'s>(&'s self) -> String {
@@ -166,10 +164,10 @@ impl Text {
         self.tr("language", None).unwrap()
     }
 
-    pub fn mass(&self, value: Kilogram<f64>) -> String {
+    pub fn mass(&self, value: Kilogram<f64>, units: &UnitSystem) -> String {
         let mut args = FluentArgs::new();
-        args.insert("value", FluentValue::from(self.units.render_mass(value)));
-        args.insert("units", FluentValue::from(String::from(&self.units)));
+        args.insert("value", FluentValue::from(units.render_mass(value)));
+        args.insert("units", FluentValue::from(String::from(units)));
 
         self.tr("mass", Some(&args)).unwrap()
     }
@@ -261,10 +259,10 @@ mod test {
 
     #[test]
     fn translations_work() {
-        let en = Text::new("en-US".parse().unwrap(), UnitSystem::SI);
+        let en = Text::new("en-US".parse().unwrap());
         assert_eq!(en.preferences(), "Preferences");
 
-        let eo = Text::new("eo".parse().unwrap(), UnitSystem::SI);
+        let eo = Text::new("eo".parse().unwrap());
         assert_eq!(eo.preferences(), "Agdoroj");
         assert_eq!(eo.history(), "Historio");
     }

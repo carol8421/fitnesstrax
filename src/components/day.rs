@@ -18,19 +18,21 @@ use crate::components::time_distance::TimeDistanceEdit;
 use crate::components::time_distance_row::time_distance_c;
 use crate::components::weight::{weight_record_c, weight_record_edit_c};
 use crate::components::{Component, Container};
-use crate::context::AppContext;
-use crate::settings::Settings;
+use crate::context::Application;
+use crate::i18n::{Text, UnitSystem};
 
 #[derive(Clone)]
 pub struct Day {
     widget: gtk::Box,
     edit_button: gtk::Button,
     view: Rc<RefCell<Container>>,
-    ctx: Arc<RwLock<AppContext>>,
+    ctx: Arc<RwLock<Application>>,
 
     date: chrono::Date<chrono_tz::Tz>,
     records: Vec<(UniqueId, TraxRecord)>,
-    settings: Settings,
+    timezone: chrono_tz::Tz,
+    text: Text,
+    units: UnitSystem,
 }
 
 impl Component for Day {
@@ -41,14 +43,16 @@ impl Component for Day {
 
 impl Day {
     pub fn new(
-        ctx: Arc<RwLock<AppContext>>,
+        ctx: Arc<RwLock<Application>>,
         date: chrono::Date<chrono_tz::Tz>,
         records: Vec<(UniqueId, TraxRecord)>,
-        settings: Settings,
+        timezone: chrono_tz::Tz,
+        text: Text,
+        units: UnitSystem,
     ) -> Day {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 5);
         let header = gtk::Box::new(gtk::Orientation::Horizontal, 5);
-        let edit_button = gtk::Button::new_with_label(&settings.text.edit());
+        let edit_button = gtk::Button::new_with_label(&text.edit());
         edit_button.show();
 
         header.pack_start(&date_c(&date), false, false, 5);
@@ -59,7 +63,9 @@ impl Day {
         let view = Container::new(Some(day_c(
             &date,
             records.iter().map(|rec| &rec.1).collect(),
-            &settings,
+            &timezone,
+            &text,
+            &units,
         )));
 
         widget.pack_start(&view.widget(), true, true, 5);
@@ -73,7 +79,9 @@ impl Day {
             ctx,
             date,
             records,
-            settings,
+            timezone,
+            text,
+            units,
         };
 
         {
@@ -92,7 +100,9 @@ impl Day {
             day_c(
                 &self.date,
                 self.records.iter().map(|rec| &rec.1).collect(),
-                &self.settings,
+                &self.timezone,
+                &self.text,
+                &self.units,
             )
             .widget(),
         ));
@@ -108,7 +118,9 @@ impl Day {
             Some(DayEdit::new(
                 &self.date,
                 &record_map,
-                &self.settings,
+                self.timezone.clone(),
+                self.text.clone(),
+                self.units.clone(),
                 Box::new(enclose!(component => move | updated_records, new_records| component.borrow_mut().save(updated_records, new_records))),
             Box::new(enclose!(component => move || component.borrow_mut().view())),
             ))
@@ -130,7 +142,9 @@ impl Day {
 fn day_c(
     _date: &chrono::Date<chrono_tz::Tz>,
     data: Vec<&TraxRecord>,
-    settings: &Settings,
+    timezone: &chrono_tz::Tz,
+    text: &Text,
+    units: &UnitSystem,
 ) -> gtk::Box {
     let container = gtk::Box::new(gtk::Orientation::Vertical, 5);
 
@@ -147,16 +161,14 @@ fn day_c(
     for record in records {
         match record {
             TraxRecord::Comments(ref _rec) => (),
-            TraxRecord::RepDuration(ref rec) => {
-                rep_duration_components.push(rep_duration_c(&rec, &settings))
-            }
-            TraxRecord::SetRep(ref rec) => set_rep_components.push(set_rep_c(&rec, &settings)),
-            TraxRecord::Steps(ref rec) => step_component = Some(steps_c(&rec, &settings)),
+            TraxRecord::RepDuration(ref rec) => rep_duration_components.push(rep_duration_c(&rec)),
+            TraxRecord::SetRep(ref rec) => set_rep_components.push(set_rep_c(&rec)),
+            TraxRecord::Steps(ref rec) => step_component = Some(steps_c(&rec, text)),
             TraxRecord::TimeDistance(ref rec) => {
-                time_distance_components.push(time_distance_c(&rec, &settings))
+                time_distance_components.push(time_distance_c(&rec, timezone, text, units))
             }
             TraxRecord::Weight(ref rec) => {
-                weight_component = Some(weight_record_c(&rec, &settings))
+                weight_component = Some(weight_record_c(&rec, text, units))
             }
         }
     }
@@ -192,7 +204,9 @@ impl DayEdit {
     fn new(
         date: &chrono::Date<chrono_tz::Tz>,
         data: &HashMap<UniqueId, TraxRecord>,
-        settings: &Settings,
+        timezone: chrono_tz::Tz,
+        text: Text,
+        units: UnitSystem,
         on_save: Box<dyn Fn(Vec<(UniqueId, TraxRecord)>, Vec<TraxRecord>)>,
         on_cancel: Box<dyn Fn()>,
     ) -> DayEdit {
@@ -208,7 +222,8 @@ impl DayEdit {
             weight_record_edit_c(
                 UniqueId::new(),
                 WeightRecord::new(DateTimeTz(date.clone().and_hms(0, 0, 0)), 0.0 * KG),
-                &settings,
+                &text,
+                units.clone(),
                 Box::new(enclose!(new_records => move |id, rec| {
                     new_records.borrow_mut().insert(id, TraxRecord::from(rec));
                 })),
@@ -219,7 +234,7 @@ impl DayEdit {
             steps_edit_c(
                 UniqueId::new(),
                 StepRecord::new(DateTimeTz(date.clone().and_hms(0, 0, 0)), 0),
-                &settings,
+                &text,
                 Box::new(enclose!(new_records => move |id, rec| {
                     new_records.borrow_mut().insert(id, TraxRecord::from(rec));
                 })),
@@ -234,7 +249,8 @@ impl DayEdit {
                     weight_component = weight_record_edit_c(
                         id.clone(),
                         rec.clone(),
-                        &settings,
+                        &text,
+                        units.clone(),
                         Box::new(enclose!(updates => move |id, rec| {
                             updates.borrow_mut().insert(id, TraxRecord::from(rec));
                         })),
@@ -244,7 +260,7 @@ impl DayEdit {
                     step_component = steps_edit_c(
                         id.clone(),
                         rec.clone(),
-                        &settings,
+                        &text,
                         Box::new(enclose!(updates => move |id_, rec| {
                             updates.borrow_mut().insert(id_.clone(), TraxRecord::from(rec));
                         })),
@@ -257,16 +273,21 @@ impl DayEdit {
             }
         }
 
-        let time_distance_edit =
-            { TimeDistanceEdit::new(date.clone(), time_distance_records, settings.clone()) };
+        let time_distance_edit = TimeDistanceEdit::new(
+            date.clone(),
+            time_distance_records,
+            timezone.clone(),
+            text.clone(),
+            units.clone(),
+        );
 
         first_row.pack_start(&weight_component, false, false, 5);
         first_row.pack_start(&step_component, false, false, 5);
         widget.pack_start(&time_distance_edit.widget, false, false, 5);
 
         let buttons_row = gtk::Box::new(gtk::Orientation::Horizontal, 5);
-        let save_button = gtk::Button::new_with_label(&settings.text.save());
-        let cancel_button = gtk::Button::new_with_label(&settings.text.cancel());
+        let save_button = gtk::Button::new_with_label(&text.save());
+        let cancel_button = gtk::Button::new_with_label(&text.cancel());
         buttons_row.pack_start(&save_button, false, false, 5);
         buttons_row.pack_start(&cancel_button, false, false, 5);
         widget.pack_start(&buttons_row, false, false, 5);

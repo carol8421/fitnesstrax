@@ -2,8 +2,9 @@ use chrono::Utc;
 use glib::Sender;
 use std::path::PathBuf;
 
-use crate::config::Configuration;
+use crate::config::{Configuration, LanguageId};
 use crate::errors::{Error, Result};
+use crate::i18n::{Text, UnitSystem};
 use crate::range::Range;
 use crate::settings::Settings;
 use crate::types::DateRange;
@@ -12,38 +13,170 @@ use fitnesstrax::{Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    ChangeSeriesFile {
+        range: DateRange,
+        records: Vec<(UniqueId, TraxRecord)>,
+    },
     ChangeRange {
         range: DateRange,
         records: Vec<(UniqueId, TraxRecord)>,
     },
-    ChangeSettings {
-        settings: Settings,
-    },
-    RecordsUpdated {
-        records: Vec<(UniqueId, TraxRecord)>,
-    },
+    ChangeLanguage(Text),
+    ChangeTimezone(chrono_tz::Tz),
+    ChangeUnits(UnitSystem),
+    RecordsUpdated(Vec<(UniqueId, TraxRecord)>),
 }
 
-pub struct AppContext {
+pub struct Application {
+    channel: Sender<Message>,
+    state: State,
+}
+
+pub enum State {
+    Unconfigured(Unconfigured),
+    Configured(Configured),
+}
+
+pub struct Unconfigured {
     settings: Settings,
     series_path: Option<PathBuf>,
-    trax: Option<Trax>,
-    range: DateRange,
-    channel: Sender<Message>,
 }
 
-impl AppContext {
-    pub fn new(channel: Sender<Message>) -> Result<AppContext> {
-        let config = Configuration::load_from_yaml();
+pub struct Configured {
+    settings: Settings,
+    series_path: PathBuf,
+    trax: Trax,
+    range: DateRange,
+}
 
-        let trax = if let Some(ref path) = config.series_path {
-            fitnesstrax::Trax::new(fitnesstrax::Params {
-                series_path: path.clone(),
+impl State {
+    pub fn series_path(&self) -> Option<&PathBuf> {
+        match self {
+            State::Unconfigured(Unconfigured { series_path, .. }) => series_path.as_ref(),
+            State::Configured(Configured { series_path, .. }) => Some(&series_path),
+        }
+    }
+
+    pub fn settings(&self) -> &Settings {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings,
+            State::Configured(Configured { settings, .. }) => &settings,
+        }
+    }
+
+    pub fn text(&self) -> &Text {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings.text,
+            State::Configured(Configured { settings, .. }) => &settings.text,
+        }
+    }
+
+    pub fn timezone(&self) -> &chrono_tz::Tz {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings.timezone,
+            State::Configured(Configured { settings, .. }) => &settings.timezone,
+        }
+    }
+
+    pub fn units(&self) -> &UnitSystem {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings.units,
+            State::Configured(Configured { settings, .. }) => &settings.units,
+        }
+    }
+
+    fn set_language(&mut self, language_str: &str) {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => {
+                settings.set_language(language_str)
+            }
+            State::Configured(Configured { settings, .. }) => settings.set_language(language_str),
+        }
+    }
+
+    fn set_timezone(&mut self, timezone: chrono_tz::Tz) {
+        match self {
+            State::Unconfigured(Unconfigured {
+                ref mut settings, ..
+            }) => settings.set_timezone(timezone),
+            State::Configured(Configured {
+                ref mut settings, ..
+            }) => settings.set_timezone(timezone),
+        }
+    }
+
+    fn set_units(&mut self, units_str: &str) {
+        match self {
+            State::Unconfigured(Unconfigured {
+                ref mut settings, ..
+            }) => settings.set_units(units_str),
+            State::Configured(Configured {
+                ref mut settings, ..
+            }) => settings.set_units(units_str),
+        }
+    }
+}
+
+impl Configured {
+    pub fn range(&self) -> DateRange {
+        self.range.clone()
+    }
+
+    pub fn get_history(&self) -> Result<Vec<(UniqueId, TraxRecord)>> {
+        let start_time = DateTimeTz(
+            self.range
+                .start
+                .and_hms(0, 0, 0)
+                .with_timezone(&self.settings.timezone),
+        );
+        let end_time = DateTimeTz(
+            (self.range.end + chrono::Duration::days(1))
+                .and_hms(0, 0, 0)
+                .with_timezone(&self.settings.timezone),
+        );
+        self.trax
+            .get_history(start_time, end_time)
+            .map(|v| {
+                v.iter()
+                    .map(|(ref id, ref record)| ((*id).clone(), (*record).clone()))
+                    .collect()
             })
-            .map(Some)
-        } else {
-            Ok(None)
-        }?;
+            .map_err(|err| Error::TraxError(err))
+    }
+
+    pub fn save_records(
+        &mut self,
+        updated_records: Vec<(UniqueId, TraxRecord)>,
+        new_records: Vec<TraxRecord>,
+    ) {
+        for (id, record) in updated_records {
+            let _ = self.trax.replace_record(id, record);
+        }
+        for record in new_records {
+            let _ = self.trax.add_record(record);
+        }
+    }
+
+    pub fn set_range(&mut self, range: DateRange) {
+        self.range = range;
+    }
+
+    pub fn text(&self) -> &Text {
+        &self.settings.text
+    }
+
+    pub fn timezone(&self) -> &chrono_tz::Tz {
+        &self.settings.timezone
+    }
+
+    pub fn units(&self) -> &UnitSystem {
+        &self.settings.units
+    }
+}
+
+impl Application {
+    pub fn new(channel: Sender<Message>) -> Result<Application> {
+        let config = Configuration::load_from_yaml();
 
         let range = Range::new(
             Utc::now().with_timezone(&config.timezone).date() - chrono::Duration::days(7),
@@ -52,99 +185,107 @@ impl AppContext {
 
         let settings = Settings::from_config(&config);
 
-        Ok(AppContext {
-            series_path: config.series_path,
-            settings,
-            trax,
-            range,
-            channel,
+        let state = if let Some(ref path) = config.series_path {
+            State::Configured(Configured {
+                trax: fitnesstrax::Trax::new(fitnesstrax::Params {
+                    series_path: path.clone(),
+                })
+                .unwrap(),
+                series_path: path.clone(),
+                range,
+                settings,
+            })
+        } else {
+            State::Unconfigured(Unconfigured {
+                series_path: None,
+                settings,
+            })
+        };
+
+        Ok(Application { channel, state })
+    }
+
+    pub fn get_state(&self) -> &State {
+        &self.state
+    }
+
+    fn save_configuration(&self) {
+        let config = Configuration {
+            series_path: self.state.series_path().map(|p| p.clone()),
+            language: LanguageId::from(self.state.settings().text.language_id()),
+            timezone: self.state.settings().timezone.clone(),
+            units: self.state.settings().units.clone(),
+        };
+        config.save_to_yaml();
+    }
+
+    pub fn set_series_path(&mut self, path: PathBuf) {
+        let trax = fitnesstrax::Trax::new(fitnesstrax::Params {
+            series_path: path.clone(),
         })
-    }
+        .unwrap();
 
-    pub fn get_series_path(&self) -> Option<&PathBuf> {
-        self.series_path.as_ref()
-    }
+        let range = Range::new(
+            Utc::now()
+                .with_timezone(&self.state.settings().timezone)
+                .date()
+                - chrono::Duration::days(7),
+            Utc::now()
+                .with_timezone(&self.state.settings().timezone)
+                .date(),
+        );
 
-    pub fn set_series_path(&mut self, path: &str) {
-        self.series_path = Some(PathBuf::from(path));
-    }
+        self.state = match self.state {
+            State::Unconfigured(Unconfigured { ref settings, .. }) => {
+                State::Configured(Configured {
+                    trax,
+                    series_path: PathBuf::from(path),
+                    range,
+                    settings: settings.clone(),
+                })
+            }
+            State::Configured(Configured {
+                ref range,
+                ref settings,
+                ..
+            }) => State::Configured(Configured {
+                trax,
+                series_path: PathBuf::from(path),
+                range: range.clone(),
+                settings: settings.clone(),
+            }),
+        };
+        self.save_configuration();
 
-    pub fn get_settings(&self) -> Settings {
-        self.settings.clone()
+        if let State::Configured(ref cfg) = self.state {
+            self.send_notifications(Message::ChangeSeriesFile {
+                range: cfg.range(),
+                records: cfg.get_history().unwrap(),
+            });
+        }
     }
 
     pub fn set_language(&mut self, language_str: &str) {
-        self.settings.set_language(language_str);
-        self.send_notifications(Message::ChangeSettings {
-            settings: self.settings.clone(),
-        });
+        self.state.set_language(language_str);
+        self.save_configuration();
+        if let State::Configured(ref state) = self.state {
+            self.send_notifications(Message::ChangeLanguage(state.settings.text.clone()));
+        }
     }
 
     pub fn set_timezone(&mut self, timezone: chrono_tz::Tz) {
-        self.settings.set_timezone(timezone);
-        self.send_notifications(Message::ChangeSettings {
-            settings: self.settings.clone(),
-        });
+        self.state.set_timezone(timezone);
+        self.save_configuration();
+        if let State::Configured(ref state) = self.state {
+            self.send_notifications(Message::ChangeTimezone(state.settings.timezone.clone()));
+        }
     }
 
     pub fn set_units(&mut self, units_str: &str) {
-        self.settings.set_units(units_str);
-        self.send_notifications(Message::ChangeSettings {
-            settings: self.settings.clone(),
-        });
-    }
-
-    /*
-    pub fn set_settings(&mut self, settings: Settings) {
-        {
-            if settings.text != self.settings.language {
-                self.translations = Translations::new(&settings.language);
-            }
-            self.settings = settings;
-
-            let config = Configuration {
-                series_path: self.series_path.clone(),
-                language: self.settings.language.clone(),
-                timezone: self.settings.timezone,
-                units: String::from(self.settings.units.clone()),
-            };
-            config.save_to_yaml();
-        }
-        self.send_notifications(Message::ChangePreferences {
-            settings: self.settings.clone(),
-            range: self.range.clone(),
-            records: self.get_history().unwrap(),
-        });
-    }
-    */
-
-    pub fn get_range(&self) -> DateRange {
-        self.range.clone()
-    }
-
-    pub fn get_history(&self) -> Result<Vec<(UniqueId, TraxRecord)>> {
-        match self.trax {
-            None => Err(Error::SeriesNotOpen),
-            Some(ref trax) => {
-                let start_time = DateTimeTz(
-                    self.range
-                        .start
-                        .and_hms(0, 0, 0)
-                        .with_timezone(&self.settings.timezone),
-                );
-                let end_time = DateTimeTz(
-                    (self.range.end + chrono::Duration::days(1))
-                        .and_hms(0, 0, 0)
-                        .with_timezone(&self.settings.timezone),
-                );
-                trax.get_history(start_time, end_time)
-                    .map(|v| {
-                        v.iter()
-                            .map(|(ref id, ref record)| ((*id).clone(), (*record).clone()))
-                            .collect()
-                    })
-                    .map_err(|err| Error::TraxError(err))
-            }
+        self.state.set_units(units_str);
+        self.save_configuration();
+        if let State::Configured(ref state) = self.state {
+            self.send_notifications(Message::ChangeUnits(state.settings.units.clone()));
         }
     }
 
@@ -153,29 +294,42 @@ impl AppContext {
         updated_records: Vec<(UniqueId, TraxRecord)>,
         new_records: Vec<TraxRecord>,
     ) -> Result<()> {
-        match self.trax {
-            None => Err(Error::SeriesNotOpen),
-            Some(ref mut trax) => {
-                for (id, record) in updated_records {
-                    let _ = trax.replace_record(id, record);
-                }
-                for record in new_records {
-                    let _ = trax.add_record(record);
-                }
-                let history = self.get_history().unwrap();
-                self.send_notifications(Message::RecordsUpdated { records: history });
+        match self.state {
+            State::Unconfigured(_) => Err(Error::SeriesNotOpen),
+            State::Configured(ref mut state) => {
+                state.save_records(updated_records, new_records);
+                Ok(())
+            }
+        }?;
+        match self.state {
+            State::Unconfigured(_) => Err(Error::SeriesNotOpen),
+            State::Configured(ref state) => {
+                self.send_notifications(Message::RecordsUpdated(
+                    state.get_history().unwrap().clone(),
+                ));
                 Ok(())
             }
         }
     }
 
-    pub fn set_range(&mut self, range: DateRange) {
-        self.range = range.clone();
-        let history = self.get_history().unwrap();
-        self.send_notifications(Message::ChangeRange {
-            range,
-            records: history,
-        });
+    pub fn set_range(&mut self, range: DateRange) -> Result<()> {
+        match self.state {
+            State::Unconfigured(_) => Err(Error::SeriesNotOpen),
+            State::Configured(ref mut state) => {
+                state.set_range(range);
+                Ok(())
+            }
+        }?;
+        match self.state {
+            State::Unconfigured(_) => Err(Error::SeriesNotOpen),
+            State::Configured(ref state) => {
+                self.send_notifications(Message::ChangeRange {
+                    range: state.range().clone(),
+                    records: state.get_history().unwrap().clone(),
+                });
+                Ok(())
+            }
+        }
     }
 
     fn send_notifications(&self, msg: Message) {

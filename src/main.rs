@@ -29,7 +29,7 @@ fn main() {
     application.connect_activate(move |app| {
         let (tx, rx) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
 
-        let ctx = Arc::new(RwLock::new(context::AppContext::new(tx).unwrap()));
+        let ctx = Arc::new(RwLock::new(context::Application::new(tx).unwrap()));
         let gui = Arc::new(RwLock::new(components::MainWindow::new(ctx.clone(), app)));
 
         let gui_clone = gui.clone();
