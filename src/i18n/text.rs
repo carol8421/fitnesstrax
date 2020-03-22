@@ -259,10 +259,10 @@ mod test {
 
     #[test]
     fn translations_work() {
-        let en = Text::new("en-US".parse().unwrap(), UnitSystem::SI);
+        let en = Text::new("en-US".parse().unwrap());
         assert_eq!(en.preferences(), "Preferences");
 
-        let eo = Text::new("eo".parse().unwrap(), UnitSystem::SI);
+        let eo = Text::new("eo".parse().unwrap());
         assert_eq!(eo.preferences(), "Agdoroj");
         assert_eq!(eo.history(), "Historio");
     }

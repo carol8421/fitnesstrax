@@ -40,3 +40,32 @@ pub fn validated_text_entry_c<A: 'static + Clone>(
 
     widget.upcast::<gtk::Widget>()
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::sync::{Arc, RwLock};
+
+    #[test]
+    fn it_calls_callbacks_on_change() {
+        gtk::init();
+        let change_param = Arc::new(RwLock::new(String::new()));
+        let entry = {
+            let mut change_param = change_param.clone();
+            text_entry_c(
+                "",
+                Box::new(move |s| {
+                    let mut c = change_param.write().unwrap();
+                    c.clear();
+                    c.push_str(s);
+                }),
+            )
+        };
+        entry
+            .downcast::<gtk::Entry>()
+            .unwrap()
+            .get_buffer()
+            .set_text("abcdefg");
+        assert_eq!(change_param.read().unwrap().as_str(), "abcdefg");
+    }
+}
