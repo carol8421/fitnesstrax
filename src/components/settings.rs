@@ -65,6 +65,9 @@ impl Settings {
             let ctx = ctx.clone();
             let chooser =
                 gtk::FileChooserButton::new("database file", gtk::FileChooserAction::Open);
+            if let Some(sp) = series_path {
+                chooser.set_filename(sp);
+            }
             chooser.connect_file_set(move |chooser| {
                 if let Some(filename) = chooser.get_filename() {
                     ctx.write().unwrap().set_series_path(filename);
