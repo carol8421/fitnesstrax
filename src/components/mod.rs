@@ -55,3 +55,15 @@ impl Component for gtk::Box {
         self.clone().upcast::<gtk::Widget>()
     }
 }
+
+impl Component for gtk::Button {
+    fn widget(&self) -> gtk::Widget {
+        self.clone().upcast::<gtk::Widget>()
+    }
+}
+
+impl Component for gtk::FileChooserButton {
+    fn widget(&self) -> gtk::Widget {
+        self.clone().upcast::<gtk::Widget>()
+    }
+}

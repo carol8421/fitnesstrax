@@ -1,6 +1,7 @@
 use chrono_tz::Tz;
 use gtk::prelude::*;
 use std::cell::RefCell;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
@@ -62,14 +63,16 @@ impl Settings {
 
         {
             let ctx = ctx.clone();
+            let chooser =
+                gtk::FileChooserButton::new("database file", gtk::FileChooserAction::Open);
+            chooser.connect_file_set(move |chooser| {
+                if let Some(filename) = chooser.get_filename() {
+                    ctx.write().unwrap().set_series_path(filename);
+                }
+            });
             component.database_path_widget.swap(Some(labeled_widget_c(
                 &settings.text.database_path(),
-                text_entry_c(
-                    &(series_path
-                        .and_then(|v| v.to_str().and_then(|v| Some(String::from(v))))
-                        .unwrap_or(String::from(""))),
-                    Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
-                ),
+                chooser,
             )));
         }
 
@@ -122,7 +125,7 @@ impl Settings {
             &text.database_path(),
             text_entry_c(
                 &series_path.unwrap_or(String::from("")),
-                Box::new(move |s| ctx.write().unwrap().set_series_path(s)),
+                Box::new(move |s| ctx.write().unwrap().set_series_path(PathBuf::from(s))),
             ),
         )));
 

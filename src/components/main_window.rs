@@ -5,9 +5,12 @@ use std::sync::{Arc, RwLock};
 use crate::components::*;
 
 pub struct MainWindow {
-    settings_label: gtk::Label,
-    history_label: Option<gtk::Label>,
-    history: Option<History>,
+    notebook: gtk::Notebook,
+    history_idx: Option<u32>,
+    history_page: Option<Page<History>>,
+    //settings_idx: u32,
+    settings_page: Page<Settings>,
+    ctx: Arc<RwLock<Application>>,
 }
 
 impl MainWindow {
@@ -20,12 +23,10 @@ impl MainWindow {
         widget.set_default_size(350, 70);
         let notebook = gtk::Notebook::new();
 
-        let settings_label = gtk::Label::new(Some(&state.text().preferences()));
-        let settings_ui = Settings::new(ctx.clone());
-        notebook.append_page(&settings_ui.widget(), Some(&settings_label));
+        let settings_page = Page::new(&state.text().preferences(), Settings::new(ctx.clone()));
 
-        let (history_label, history) = match state {
-            State::Unconfigured(_) => (None, None),
+        let history_page = match state {
+            State::Unconfigured(_) => None,
             State::Configured(state) => {
                 let history = History::new(
                     state.range(),
@@ -35,9 +36,7 @@ impl MainWindow {
                     state.units(),
                     ctx.clone(),
                 );
-                let history_label = gtk::Label::new(Some(&state.text().history()));
-                notebook.prepend_page(&history.widget(), Some(&history_label));
-                (Some(history_label), Some(history))
+                Some(Page::new(&state.text().history(), history))
             }
         };
 
@@ -45,37 +44,117 @@ impl MainWindow {
         widget.add(&notebook);
         widget.show();
 
-        MainWindow {
-            history_label,
-            settings_label,
-            history,
+        /*let settings_idx =*/
+        notebook.append_page(
+            &settings_page.component.widget(),
+            Some(&settings_page.label),
+        );
+        let history_idx = match history_page {
+            Some(ref page) => {
+                Some(notebook.prepend_page(&page.component.widget(), Some(&page.label)))
+            }
+            None => None,
+        };
+
+        let self_ = MainWindow {
+            notebook,
+            history_idx,
+            history_page: history_page,
+            //settings_idx,
+            settings_page,
+            ctx: ctx.clone(),
+        };
+        self_.select_history_page();
+
+        self_
+    }
+
+    /* Move this into the Application, similar to the architecture shown here:
+     * https://gitlab.gnome.org/World/Shortwave/-/blob/master/src/app.rs
+     */
+    pub fn update_from(&mut self, message: Message) {
+        match message {
+            Message::ChangeSeriesFile { range, records } => match self.history_page {
+                None => {
+                    let ctx_ = self.ctx.read().unwrap();
+                    let state = ctx_.get_state();
+                    let history = History::new(
+                        range,
+                        records,
+                        state.text(),
+                        state.timezone(),
+                        state.units(),
+                        self.ctx.clone(),
+                    );
+                    let history_page = Page::new(&state.text().history(), history);
+                    self.history_idx =
+                        Some(self.notebook.prepend_page(
+                            &history_page.component.widget(),
+                            Some(&history_page.label),
+                        ));
+                    self.history_page = Some(history_page);
+                }
+                Some(ref mut page) => {
+                    page.component.set_range(range);
+                    page.component.set_records(records);
+                }
+            },
+            Message::ChangeRange { range, records } => {
+                if let Some(ref mut page) = self.history_page {
+                    page.component.set_range(range);
+                    page.component.set_records(records);
+                };
+            }
+            Message::ChangeLanguage(ref text) => {
+                if let Some(ref mut page) = self.history_page {
+                    page.set_label(&text.history());
+                    page.component.set_language(text.clone());
+                }
+                self.settings_page.set_label(&text.preferences());
+            }
+            Message::ChangeTimezone(timezone) => {
+                self.history_page
+                    .as_mut()
+                    .map(|page| page.component.set_timezone(timezone));
+            }
+            Message::ChangeUnits(units) => {
+                self.history_page
+                    .as_mut()
+                    .map(|page| page.component.set_units(units));
+            }
+            Message::RecordsUpdated(records) => {
+                self.history_page
+                    .as_mut()
+                    .map(|page| page.component.set_records(records));
+            }
         }
     }
 
-    pub fn update_from(&mut self, message: Message) {
-        match message {
-            Message::ChangeRange { range, records } => {
-                if let Some(ref mut history) = self.history {
-                    history.set_range(range);
-                    history.set_records(records);
-                };
-            }
-            Message::ChangeLanguage(text) => {
-                self.history_label
-                    .as_ref()
-                    .map(|label| label.set_markup(&text.history()));
-                self.settings_label.set_markup(&text.preferences());
-                self.history.as_mut().map(|h| h.set_language(text));
-            }
-            Message::ChangeTimezone(timezone) => {
-                self.history.as_mut().map(|h| h.set_timezone(timezone));
-            }
-            Message::ChangeUnits(units) => {
-                self.history.as_mut().map(|h| h.set_units(units));
-            }
-            Message::RecordsUpdated(records) => {
-                self.history.as_mut().map(|h| h.set_records(records));
-            }
+    /*
+    fn set_settings_page(&self) {
+        self.notebook.set_current_page(Some(self.settings_idx));
+    }
+    */
+
+    fn select_history_page(&self) {
+        self.notebook.set_current_page(self.history_idx);
+    }
+}
+
+struct Page<T: Component> {
+    pub label: gtk::Label,
+    pub component: T,
+}
+
+impl<T: Component> Page<T> {
+    pub fn new(label_text: &str, component: T) -> Page<T> {
+        Page {
+            label: gtk::Label::new(Some(label_text)),
+            component,
         }
+    }
+
+    pub fn set_label(&self, label_text: &str) {
+        self.label.set_markup(label_text);
     }
 }

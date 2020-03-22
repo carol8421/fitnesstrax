@@ -13,6 +13,10 @@ use fitnesstrax::{Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    ChangeSeriesFile {
+        range: DateRange,
+        records: Vec<(UniqueId, TraxRecord)>,
+    },
     ChangeRange {
         range: DateRange,
         records: Vec<(UniqueId, TraxRecord)>,
@@ -64,6 +68,20 @@ impl State {
         match self {
             State::Unconfigured(Unconfigured { settings, .. }) => &settings.text,
             State::Configured(Configured { settings, .. }) => &settings.text,
+        }
+    }
+
+    pub fn timezone(&self) -> &chrono_tz::Tz {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings.timezone,
+            State::Configured(Configured { settings, .. }) => &settings.timezone,
+        }
+    }
+
+    pub fn units(&self) -> &UnitSystem {
+        match self {
+            State::Unconfigured(Unconfigured { settings, .. }) => &settings.units,
+            State::Configured(Configured { settings, .. }) => &settings.units,
         }
     }
 
@@ -201,9 +219,9 @@ impl Application {
         config.save_to_yaml();
     }
 
-    pub fn set_series_path(&mut self, path: &str) {
+    pub fn set_series_path(&mut self, path: PathBuf) {
         let trax = fitnesstrax::Trax::new(fitnesstrax::Params {
-            series_path: PathBuf::from(path),
+            series_path: path.clone(),
         })
         .unwrap();
 
@@ -238,6 +256,13 @@ impl Application {
             }),
         };
         self.save_configuration();
+
+        if let State::Configured(ref cfg) = self.state {
+            self.send_notifications(Message::ChangeSeriesFile {
+                range: cfg.range(),
+                records: cfg.get_history().unwrap(),
+            });
+        }
     }
 
     pub fn set_language(&mut self, language_str: &str) {
