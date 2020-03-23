@@ -1,6 +1,9 @@
+use gio::{Settings, SettingsExt};
 use serde::de::{self, Deserializer, Visitor};
 use serde::{Deserialize, Serialize, Serializer};
+use std::borrow::Cow;
 use std::convert::From;
+use std::convert::TryFrom;
 use std::env;
 use std::fmt;
 use std::fs::File;
@@ -40,6 +43,50 @@ impl Configuration {
         let mut config_file = File::create(config_path.clone())
             .expect(&format!("cannot open configuration file: {}", &config_path));
         let _ = config_file.write(s.as_bytes());
+    }
+
+    pub fn load_from_gsettings() -> Configuration {
+        let s = Settings::new("com.luminescent-dreams.fitnesstrax");
+
+        Configuration {
+            series_path: s.get_string("series-path").and_then(|s| {
+                if s.as_str() == "" {
+                    None
+                } else {
+                    Some(path::PathBuf::from(s.as_str()))
+                }
+            }),
+            language: LanguageId(
+                s.get_string("language")
+                    .unwrap()
+                    .parse()
+                    .expect("language strings"),
+            ),
+            timezone: s
+                .get_string("timezone")
+                .unwrap()
+                .as_str()
+                .parse::<chrono_tz::Tz>()
+                .unwrap(),
+            units: UnitSystem::try_from(s.get_string("units").unwrap().as_str()).unwrap(),
+        }
+    }
+
+    pub fn save_to_gsettings(&self) {
+        let s = Settings::new("com.luminescent-dreams.fitnesstrax");
+        s.delay();
+        s.set_string(
+            "series-path",
+            &self
+                .series_path
+                .clone()
+                .map(|p| String::from(p.to_string_lossy()))
+                .unwrap_or(String::from("")),
+        );
+        s.set_string("language", self.language.get_language());
+        s.set_string("timezone", self.timezone.name());
+        s.set_string("units", &String::from(&self.units));
+        s.apply();
     }
 }
 

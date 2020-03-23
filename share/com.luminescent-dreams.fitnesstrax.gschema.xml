@@ -1,0 +1,40 @@
+<schemalist>
+    <schema id="com.luminescent-dreams.fitnesstrax" path="/com/luminescent-dreams/fitnesstrax/">
+        <key name="series-path" type="s">
+            <default>""</default>
+            <summary>Path to the health and fitness series</summary>
+            <description> Path to the health and fitness series </description>
+        </key>
+
+        <key name="language" type="s">
+            <summary>Language</summary>
+            <description>Language for the application</description>
+            <default>"en"</default>
+            <choices>
+                <choice value="en" />
+                <choice value="eo" />
+            </choices>
+        </key>
+
+        <key name="timezone" type="s">
+            <summary>Timezone</summary>
+            <description>What time zone are you in right now?</description>
+            <default>"Etc/UTC"</default>
+            <choices>
+                <choice value="America/Chicago" />
+                <choice value="America/New_York" />
+                <choice value="Etc/UTC" />
+            </choices>
+        </key>
+
+        <key name="units" type="s">
+            <summary>Units System</summary>
+            <description>Units System</description>
+            <default>"SI"</default>
+            <choices>
+                <choice value="SI" />
+                <choice value="USA" />
+            </choices>
+        </key>
+    </schema>
+</schemalist>
