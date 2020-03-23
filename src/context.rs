@@ -176,7 +176,7 @@ impl Configured {
 
 impl Application {
     pub fn new(channel: Sender<Message>) -> Result<Application> {
-        let config = Configuration::load_from_yaml();
+        let config = Configuration::load_from_gsettings();
 
         let range = Range::new(
             Utc::now().with_timezone(&config.timezone).date() - chrono::Duration::days(7),
@@ -216,7 +216,7 @@ impl Application {
             timezone: self.state.settings().timezone.clone(),
             units: self.state.settings().units.clone(),
         };
-        config.save_to_yaml();
+        config.save_to_gsettings();
     }
 
     pub fn set_series_path(&mut self, path: PathBuf) {

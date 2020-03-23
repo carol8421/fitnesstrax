@@ -176,6 +176,7 @@ fn timezone_menu(text: &Text, timezone: &Tz, component: Rc<RefCell<Settings>>) -
         &text.timezone(),
         dropmenu_c(
             MenuOptions(vec![
+                ("Etc/UTC", "UTC"),
                 ("America/Chicago", "United States: Chicago"),
                 ("America/New_York", "United States: New York"),
             ]),

@@ -11,3 +11,4 @@ client/index.js
 db.series
 result
 config.yaml
+gschemas.compiled
