@@ -1,12 +1,12 @@
 use emseries::{Recordable, UniqueId};
-use fitnesstrax::steps::StepRecord;
+use fitnesstrax_lib::steps::StepRecord;
 use gtk::prelude::*;
 
 use crate::components::validated_text_entry_c;
 use crate::errors::Error;
 use crate::i18n::Text;
 
-pub fn steps_c(record: &fitnesstrax::steps::StepRecord, text: &Text) -> gtk::Label {
+pub fn steps_c(record: &fitnesstrax_lib::steps::StepRecord, text: &Text) -> gtk::Label {
     gtk::Label::new(Some(&text.step_count(record.steps)))
 }
 

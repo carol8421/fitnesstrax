@@ -34,5 +34,5 @@ tzdata = "0.4.1"
 unic-langid = "0.7.1"
 
 [[bin]]
-name = "fitnesstrax-gtk"
+name = "fitnesstrax"
 path = "src/main.rs"

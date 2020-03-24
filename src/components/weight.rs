@@ -1,5 +1,5 @@
 use emseries::{Recordable, UniqueId};
-use fitnesstrax::weight::WeightRecord;
+use fitnesstrax_lib::weight::WeightRecord;
 use gtk::prelude::*;
 
 use crate::components::basics::validated_text_entry_c;

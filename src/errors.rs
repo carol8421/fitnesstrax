@@ -12,12 +12,12 @@ pub enum Error {
     ParseTimeError,
     ParseUnitsError,
     SeriesNotOpen,
-    TraxError(fitnesstrax::Error),
+    TraxError(fitnesstrax_lib::Error),
     IOError(io::Error),
 }
 
-impl From<fitnesstrax::Error> for Error {
-    fn from(error: fitnesstrax::Error) -> Self {
+impl From<fitnesstrax_lib::Error> for Error {
+    fn from(error: fitnesstrax_lib::Error) -> Self {
         Error::TraxError(error)
     }
 }

@@ -212,26 +212,13 @@ dependencies = [
 
 [[package]]
 name = "fitnesstrax"
-version = "0.1.0-pre"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "chrono-tz",
  "dimensioned",
  "emseries",
- "serde",
- "serde_derive",
- "serde_json",
-]
-
-[[package]]
-name = "fitnesstrax-gtk"
-version = "0.1.0-pre"
-dependencies = [
- "chrono",
- "chrono-tz",
- "dimensioned",
- "emseries",
- "fitnesstrax",
+ "fitnesstrax-lib",
  "fluent",
  "gio",
  "glib",
@@ -240,6 +227,21 @@ dependencies = [
  "serde_yaml",
  "tzdata",
  "unic-langid",
+]
+
+[[package]]
+name = "fitnesstrax-lib"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b038085dde9e33d0497d2246192db4c396f1985a33aa21b4b72666a0eba41dd"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "dimensioned",
+ "emseries",
+ "serde",
+ "serde_derive",
+ "serde_json",
 ]
 
 [[package]]

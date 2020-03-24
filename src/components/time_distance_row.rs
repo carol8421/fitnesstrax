@@ -11,7 +11,7 @@ use crate::components::basics::{
     time_edit_c, MenuOptions,
 };
 use crate::i18n::{Text, UnitSystem};
-use fitnesstrax::timedistance::{activity_types, ActivityType, TimeDistanceRecord};
+use fitnesstrax_lib::timedistance::{activity_types, ActivityType, TimeDistanceRecord};
 
 fn activity_c(activity: &ActivityType, text: &Text) -> gtk::Label {
     let activity_str = match activity {
@@ -26,7 +26,7 @@ fn activity_c(activity: &ActivityType, text: &Text) -> gtk::Label {
 }
 
 pub fn time_distance_c(
-    record: &fitnesstrax::timedistance::TimeDistanceRecord,
+    record: &fitnesstrax_lib::timedistance::TimeDistanceRecord,
     timezone: &chrono_tz::Tz,
     text: &Text,
     units: &UnitSystem,

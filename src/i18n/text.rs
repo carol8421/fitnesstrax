@@ -5,7 +5,7 @@ use std::sync::Arc;
 use unic_langid::LanguageIdentifier;
 
 use crate::i18n::UnitSystem;
-use fitnesstrax::timedistance;
+use fitnesstrax_lib::timedistance;
 
 const ENGLISH_STRINGS: &str = "
 about = About
@@ -91,6 +91,7 @@ weight = Weight
 ";
 
 const ESPERANTO_STRINGS: &str = "
+about = Pri
 add-time-distance-workout = Aldonu Trejnadon de Daŭro/Distanco
 cancel = Nuligi
 cycling = Biciklado

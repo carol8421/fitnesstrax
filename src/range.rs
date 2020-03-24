@@ -1,15 +1,13 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate dimensioned;
-extern crate emseries;
-extern crate fitnesstrax;
 extern crate gio;
 extern crate gtk;
 
 use std::collections::HashMap;
 
 use emseries::{Recordable, UniqueId};
-pub use fitnesstrax::{Params, Result, Trax, TraxRecord};
+pub use fitnesstrax_lib::{Params, Result, Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
 pub struct Range<A> {

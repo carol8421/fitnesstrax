@@ -4,22 +4,22 @@ Privacy-first fitness tracking. Your health, your data, your machine.
 
 This application is deeply inspired by the work that I did on [an older health application](https://github.com/savannidgerinel/health). It will eventually be a full replacement for that application, but with improved architecture from several years of learning.
 
+The data files for this application are built atop [emseries](), and thus should be easily readable. Please refer to that project for the time series file format. The individual records relevant to this application will be documented one day in the future.
 
-## User Interface
+## Installing
 
-I need to decide on a user interface style.
+This application does not have proper installers for anything other than NixOS at this time. While `cargo install` will mostly work, it is still important do get the GTK resources into hte path.
 
-At this point, most developers would build out a web service and write a react/redux app and be done with that. But, this is basically a single user application, so it would make equal sense to create a GUI app. Fewer security flaws until I add communication. But potentially a lot more work. But also, potentially, an opportunity for jobs currently not open to me.
+Before running the application, create a blank file that can serve as the database. The UI is not currently able to do an "open or create" type of behavior.
 
-But, really, a native app is easier on users if I'm expecting them to host the app themselves.
+## A word on timezones
 
-## Publication
+Only a few timezones are currently included in the application. I have put no effort yet into providing the full list of timezones that can be supported. If you have a particular timezone that you would like to see added, file an issue on the project. Ideally, please report your timezone from the [TZ Database Name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) column.
 
-*   Crates.io
-    *   Push fitnesstrax-lib
-    *   Push fitnesstrax
-*   Nixpkgs
+Alternatively, if you would like to implement the full timezone listing, please contact me and we can discuss what is involved.
 
-## Release Notes
+## Translations
 
-*   Database files must be created. Only an empty file is needed.
+Please contact me if you believe the English or Esperanto translations could be better.
+
+Please contact me if you are interested in adding a language translation for the application.

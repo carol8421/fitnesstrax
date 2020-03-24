@@ -1,5 +1,5 @@
 use emseries::{DateTimeTz, Recordable, UniqueId};
-use fitnesstrax::timedistance::{ActivityType, TimeDistanceRecord};
+use fitnesstrax_lib::timedistance::{ActivityType, TimeDistanceRecord};
 use gtk::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;

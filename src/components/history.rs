@@ -1,7 +1,7 @@
 use chrono::Date;
 use chrono_tz::Tz;
 use emseries::UniqueId;
-use fitnesstrax::TraxRecord;
+use fitnesstrax_lib::TraxRecord;
 use gtk::prelude::*;
 use std::sync::{Arc, RwLock};
 

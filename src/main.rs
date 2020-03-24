@@ -1,6 +1,6 @@
 extern crate chrono;
 extern crate chrono_tz;
-extern crate fitnesstrax;
+extern crate fitnesstrax_lib;
 extern crate gio;
 extern crate glib;
 extern crate gtk;

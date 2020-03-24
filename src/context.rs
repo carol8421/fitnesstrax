@@ -9,7 +9,7 @@ use crate::range::Range;
 use crate::settings::Settings;
 use crate::types::DateRange;
 use emseries::{DateTimeTz, UniqueId};
-use fitnesstrax::{Trax, TraxRecord};
+use fitnesstrax_lib::{Trax, TraxRecord};
 
 #[derive(Clone, Debug)]
 pub enum Message {
@@ -187,7 +187,7 @@ impl Application {
 
         let state = if let Some(ref path) = config.series_path {
             State::Configured(Configured {
-                trax: fitnesstrax::Trax::new(fitnesstrax::Params {
+                trax: fitnesstrax_lib::Trax::new(fitnesstrax_lib::Params {
                     series_path: path.clone(),
                 })
                 .unwrap(),
@@ -220,7 +220,7 @@ impl Application {
     }
 
     pub fn set_series_path(&mut self, path: PathBuf) {
-        let trax = fitnesstrax::Trax::new(fitnesstrax::Params {
+        let trax = fitnesstrax_lib::Trax::new(fitnesstrax_lib::Params {
             series_path: path.clone(),
         })
         .unwrap();

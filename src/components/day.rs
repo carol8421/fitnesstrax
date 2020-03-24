@@ -1,8 +1,8 @@
 use dimensioned::si::KG;
 use emseries::{DateTimeTz, Recordable, UniqueId};
-use fitnesstrax::steps::StepRecord;
-use fitnesstrax::weight::WeightRecord;
-use fitnesstrax::TraxRecord;
+use fitnesstrax_lib::steps::StepRecord;
+use fitnesstrax_lib::weight::WeightRecord;
+use fitnesstrax_lib::TraxRecord;
 use gtk::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
