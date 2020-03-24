@@ -12,7 +12,7 @@ categories = ["health-and-fitness"]
 include = [
     "**/*.rs",
     "Cargo.toml",
-    "shared/",
+    "share/",
     "readme.md",
     "LICENSE",
     "CODE_OF_CONDUCT.md",
