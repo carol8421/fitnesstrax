@@ -74,7 +74,7 @@ mod test {
     use chrono_tz::America::New_York;
     use dimensioned::si::KG;
     use emseries::{DateTimeTz, UniqueId};
-    use fitnesstrax::TraxRecord;
+    use fitnesstrax_lib::TraxRecord;
 
     #[test]
     fn it_creates_a_list_of_dates() {
