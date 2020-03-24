@@ -8,11 +8,25 @@ use crate::i18n::UnitSystem;
 use fitnesstrax::timedistance;
 
 const ENGLISH_STRINGS: &str = "
+about = About
 activity = Activity
 add-time-distance-workout = Add Time/Distance Workout
 cancel = Cancel
 cycling = Cycling
 database-path = Database Path
+dependencies = Dependencies
+  chrono-tz 0.4, MIT/Apache-2.0, Djzin
+  chrono 0.4, MIT/Apache-2.0, Brandon W. Maister, Kang Seonghoon
+  dimensioned 0.7.0, MIT/Apache-2.0, Paho Lurie-Gregg
+  emseries 0.5.0, BSD-3-Clause, Savanni D'Gerine
+  fluent 0.9.1, Apache-2.0/MIT, Staś Małolepszy, Zibi Braniecki
+  gio, MIT, The Gtk-rs Project Developers
+  glib 0.9.0, MIT, The Gtk-rs Project Developers
+  gtk 0.8.0, MIT, The Gtk-rs Project Developers
+  serde 1, MIT/Apache-2.0, David Tolnay, Erick Tryzelaar
+  serde_yaml, MIT/Apache-2.0, David Tolnay
+  tzdata 0.4.1, MIT, Maxime Lenoir
+  unic-langid 0.7.1, MIT/Apache-2.0, Zibi Braniecki
 edit = Edit
 enter-distance = Enter distance
 enter-duration = Enter duration
@@ -20,6 +34,35 @@ enter-time = Enter time
 health-tracker = Health Tracker
 history = History
 language = Language
+license = Copyright Savanni D'Gerinel (c) 2018-2020
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above
+    copyright notice, this list of conditions and the following
+    disclaimer in the documentation and/or other materials provided
+    with the distribution.
+
+  - Neither the name of Savanni D'Gerinel nor the names of other
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 mass = {$units ->
     *[SI] {$value} kilograms
     [USA] {$value} pounds
@@ -28,6 +71,7 @@ mass-label = {$units ->
     *[SI] kilograms
     [USA] pounds
 }
+name-with-version = FitnessTrax, version 0.1
 preferences = Preferences
 pushups = Pushups
 rowing = Rowing
@@ -132,7 +176,11 @@ impl Text {
         &self.language
     }
 
-    pub fn activity<'s>(&'s self) -> String {
+    pub fn about<'s>(&self) -> String {
+        self.tr("about", None).unwrap()
+    }
+
+    pub fn activity<'s>(&self) -> String {
         self.tr("activity", None).unwrap()
     }
 
@@ -148,8 +196,12 @@ impl Text {
         self.tr("cycling", None).unwrap()
     }
 
-    pub fn database_path<'s>(&'s self) -> String {
+    pub fn database_path(&self) -> String {
         self.tr("database-path", None).unwrap()
+    }
+
+    pub fn dependencies(&self) -> String {
+        self.tr("dependencies", None).unwrap()
     }
 
     pub fn edit(&self) -> String {
@@ -164,6 +216,10 @@ impl Text {
         self.tr("language", None).unwrap()
     }
 
+    pub fn license(&self) -> String {
+        self.tr("license", None).unwrap()
+    }
+
     pub fn mass(&self, value: Kilogram<f64>, units: &UnitSystem) -> String {
         let mut args = FluentArgs::new();
         args.insert("value", FluentValue::from(units.render_mass(value)));
@@ -174,6 +230,10 @@ impl Text {
 
     pub fn mass_label(&self) -> String {
         self.tr("mass-label", None).unwrap()
+    }
+
+    pub fn name_with_version(&self) -> String {
+        self.tr("name-with-version", None).unwrap()
     }
 
     pub fn preferences(&self) -> String {
