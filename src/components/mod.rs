@@ -18,6 +18,7 @@ macro_rules! enclose {
 
 use gtk::prelude::*;
 
+mod about;
 mod basics;
 mod date_selector;
 mod day;
@@ -32,6 +33,7 @@ mod time_distance;
 mod time_distance_row;
 mod weight;
 
+pub use about::About;
 pub use basics::*;
 pub use date_selector::date_selector_c;
 pub use day::Day;

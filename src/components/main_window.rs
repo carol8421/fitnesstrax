@@ -8,7 +8,7 @@ pub struct MainWindow {
     notebook: gtk::Notebook,
     history_idx: Option<u32>,
     history_page: Option<Page<History>>,
-    //settings_idx: u32,
+    about_page: Page<About>,
     settings_page: Page<Settings>,
     ctx: Arc<RwLock<Application>>,
 }
@@ -24,6 +24,13 @@ impl MainWindow {
         let notebook = gtk::Notebook::new();
 
         let settings_page = Page::new(&state.text().preferences(), Settings::new(ctx.clone()));
+        notebook.append_page(
+            &settings_page.component.widget(),
+            Some(&settings_page.label),
+        );
+
+        let about_page = Page::new(&state.text().about(), About::new(state.text()));
+        notebook.append_page(&about_page.component.widget(), Some(&about_page.label));
 
         let history_page = match state {
             State::Unconfigured(_) => None,
@@ -39,16 +46,6 @@ impl MainWindow {
                 Some(Page::new(&state.text().history(), history))
             }
         };
-
-        notebook.show();
-        widget.add(&notebook);
-        widget.show();
-
-        /*let settings_idx =*/
-        notebook.append_page(
-            &settings_page.component.widget(),
-            Some(&settings_page.label),
-        );
         let history_idx = match history_page {
             Some(ref page) => {
                 Some(notebook.prepend_page(&page.component.widget(), Some(&page.label)))
@@ -56,11 +53,15 @@ impl MainWindow {
             None => None,
         };
 
+        notebook.show();
+        widget.add(&notebook);
+        widget.show();
+
         let self_ = MainWindow {
             notebook,
             history_idx,
             history_page: history_page,
-            //settings_idx,
+            about_page,
             settings_page,
             ctx: ctx.clone(),
         };
@@ -110,6 +111,8 @@ impl MainWindow {
                     page.set_label(&text.history());
                     page.component.set_language(text.clone());
                 }
+                self.about_page.set_label(&text.about());
+                self.about_page.component.set_language(text);
                 self.settings_page.set_label(&text.preferences());
             }
             Message::ChangeTimezone(timezone) => {
