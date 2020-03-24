@@ -60,7 +60,8 @@ dependencies = [
 
 [[package]]
 name = "emseries"
-version = "0.5.0-pre"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-tz 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -75,12 +76,12 @@ dependencies = [
 
 [[package]]
 name = "fitnesstrax"
-version = "0.1.0-pre"
+version = "0.1.0"
 dependencies = [
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-tz 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dimensioned 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "emseries 0.5.0-pre",
+ "emseries 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.44 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -424,6 +425,7 @@ dependencies = [
 "checksum chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)" = "31850b4a4d6bae316f7a09e691c944c28299298837edc0a03f755618c23cbc01"
 "checksum chrono-tz 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "aa1878c18b5b01b9978d5f130fe366d434022004d12fb87c182e8459b427c4a3"
 "checksum dimensioned 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2517b0555262aeeda0d107a40ecfbbcf185921180ffb4acf316ebe0887467e26"
+"checksum emseries 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "88dc7fc71c7bfcdb0826681791585614f2056037904f310350e675ac1095d2c7"
 "checksum fuchsia-cprng 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 "checksum generic-array 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8107dafa78c80c848b71b60133954b4a58609a3a1a5f9af037ecc7f67280f369"
 "checksum getrandom 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)" = "7abc8dd8451921606d809ba32e95b6111925cd2906060d2dcc29c070220503eb"

@@ -1,8 +1,18 @@
 [package]
-name = "fitnesstrax"
+name = "fitnesstrax-lib"
 authors = ["Savanni D'Gerinel <savanni@luminescent-dreams.com>"]
 edition = "2018"
-version = "0.1.0-pre"
+version = "0.1.0"
+description = "Library for managing fitness time series data"
+license = "BSD-3-Clause"
+homepage = "https://github.com/luminescent-dreams/fitnesstrax"
+repository = "https://github.com/luminescent-dreams/fitnesstrax"
+categories = ["data-structures", "health-and-fitness"]
+
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }

@@ -12,3 +12,14 @@ I need to decide on a user interface style.
 At this point, most developers would build out a web service and write a react/redux app and be done with that. But, this is basically a single user application, so it would make equal sense to create a GUI app. Fewer security flaws until I add communication. But potentially a lot more work. But also, potentially, an opportunity for jobs currently not open to me.
 
 But, really, a native app is easier on users if I'm expecting them to host the app themselves.
+
+## Publication
+
+*   Crates.io
+    *   Push fitnesstrax-lib
+    *   Push fitnesstrax
+*   Nixpkgs
+
+## Release Notes
+
+*   Database files must be created. Only an empty file is needed.
