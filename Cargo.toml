@@ -25,7 +25,7 @@ dimensioned = "0.7.0"
 emseries = "0.5.0"
 fitnesstrax-lib = "0.1.0"
 fluent = "0.9.1"
-gio = { version = "", features = ["v2_44"] }
+gio = { version = "0.8.1", features = ["v2_44"] }
 glib = "0.9.0"
 gtk = { version = "0.8.0", features = ["v3_16"] }
 serde = { version = "1.0", features = ["derive"] }
